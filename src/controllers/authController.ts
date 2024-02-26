@@ -12,8 +12,8 @@ export async function registerUser(
 
     const hashedPassword = await argon2.hash(password, {
       type: argon2.argon2id,
-      memoryCost: 47104,
-      timeCost: 1,
+      memoryCost: 19456,
+      timeCost: 2,
       parallelism: 1,
       secret: Buffer.from(process.env.PASSWORD_PEPPER!),
     });
