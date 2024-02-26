@@ -1,32 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import User, { IUser } from '@models/User.js';
-import AUTH_JWT_MAX_AGE, {
-  REFRESH_TOKEN_MAX_AGE,
-} from '@config/auth.config.js';
+import {
+  generateRefreshToken,
+  setAuthCookie,
+  setRefreshCookie,
+  signAuthJwt,
+} from '@helpers/auth.helpers.js';
 
 function denyAccess(res: Response) {
-  return res.clearCookie('auth').clearCookie('refresh').redirect('/login');
-}
-
-function signAuthJwt(email: string) {
-  return new Promise<string>((resolve, reject) => {
-    jwt.sign(
-      {},
-      process.env.JWT_SECRET!,
-      {
-        expiresIn: `${AUTH_JWT_MAX_AGE}ms`,
-        subject: email,
-      },
-      (err, encoded) => {
-        if (err) {
-          return reject(err);
-        } else {
-          resolve(encoded!);
-        }
-      },
-    );
-  });
+  return res
+    .clearCookie('auth')
+    .clearCookie('refresh')
+    .status(401)
+    .json({ message: 'Missing valid client credentials' });
 }
 
 export default async function checkAuthExpiry(
@@ -67,30 +54,16 @@ export default async function checkAuthExpiry(
             );
             if (isRefreshValid) {
               // renew refresh token
-              const nextRefreshToken = crypto.randomUUID();
-              const nextRefreshObj: IUser['refreshTokens'][number] = {
-                token: nextRefreshToken,
-                expDate: new Date(new Date().getTime() + REFRESH_TOKEN_MAX_AGE),
-              };
               user.refreshTokens = user.refreshTokens.filter(
                 (el) => el.token !== req.cookies.refresh,
               );
-              user.refreshTokens.push(nextRefreshObj);
-              await user.save();
-
-              res.cookie('refresh', nextRefreshToken, {
-                maxAge: REFRESH_TOKEN_MAX_AGE,
-              });
+              const { token: nextRefreshToken } =
+                await generateRefreshToken(user);
+              setRefreshCookie(res, nextRefreshToken);
 
               // renew auth JWT
               const encodedJwt = await signAuthJwt(user.email);
-              // auth cookie should stay alive longer than the actual
-              // JWT stays valid. This allows the app to use the "subject"
-              // claim to match the refresh token with the correct user
-              // in the DB
-              res.cookie('auth', encodedJwt, {
-                maxAge: REFRESH_TOKEN_MAX_AGE,
-              });
+              setAuthCookie(res, encodedJwt);
 
               return next();
             } else {

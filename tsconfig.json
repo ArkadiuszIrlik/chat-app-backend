@@ -36,7 +36,8 @@
       "@utils/*": ["./src/utils/*"],
       "@config/*": ["./src/config/*"],
       "@models/*": ["./src/models/*"],
-      "@routes/*": ["./src/routes/*"]
+      "@routes/*": ["./src/routes/*"],
+      "@helpers/*": ["./src/helpers/*"]
     } /* Specify a set of entries that re-map imports to additional lookup locations. */,
     "rootDirs": [
       "./src/",
