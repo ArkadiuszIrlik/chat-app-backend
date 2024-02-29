@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import { createServer } from 'node:https';
 import { readFile } from 'fs/promises';
 import { Server } from 'socket.io';
-
+import connectToDb from '@config/db.config.js';
 
 const key = await readFile('./localhost-key.pem');
 const cert = await readFile('./localhost.pem');
@@ -19,9 +19,7 @@ const io = new Server(server, {
   },
   transports: ['polling', 'websocket'],
 });
-
-console.log(process.env.FRONTEND_ADDRESS);
-
+await connectToDb();
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
