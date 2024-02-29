@@ -1,11 +1,11 @@
+// Make sure env config is imported first
+import '@config/env.config.js';
 import express, { Request, Response } from 'express';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
 import { createServer } from 'node:https';
 import { readFile } from 'fs/promises';
 import { Server } from 'socket.io';
 
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const key = await readFile('./localhost-key.pem');
 const cert = await readFile('./localhost.pem');
