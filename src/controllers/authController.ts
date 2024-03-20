@@ -16,6 +16,8 @@ export async function registerUser(
   try {
     const { email, password } = req.body;
 
+    const existingEmail = User.findOne({ email }).exec();
+
     const hashedPassword = await argon2.hash(password, {
       type: argon2.argon2id,
       memoryCost: 19456,
@@ -24,10 +26,12 @@ export async function registerUser(
       secret: Buffer.from(process.env.PASSWORD_PEPPER!),
     });
 
-    await User.create({
-      email,
-      password: hashedPassword,
-    });
+    if ((await existingEmail) === null) {
+      await User.create({
+        email,
+        password: hashedPassword,
+      });
+    }
 
     return res.status(201).json({
       message: 'User registered successfully',
