@@ -3,26 +3,54 @@ import jwt from 'jsonwebtoken';
 import User, { IUser } from '@models/User.js';
 import {
   generateRefreshToken,
-  setAuthCookie,
-  setRefreshCookie,
+  setAuthCookies,
   signAuthJwt,
 } from '@helpers/auth.helpers.js';
 
-function denyAccess(res: Response) {
+interface RequestWithSockets extends Request {
+  isSocketRequest?: boolean;
+  _query?: Record<string, any>;
+}
+
+function denyAccess(
+  req: RequestWithSockets,
+  res: Response,
+  next: NextFunction,
+) {
+  function clearCookie(res: Response, names: string | string[]) {
+    let cookieNames: string[];
+    if (typeof names === 'string') {
+      cookieNames = [names];
+    } else {
+      cookieNames = names;
+    }
+    res.setHeader(
+      'Set-Cookie',
+      cookieNames.map(
+        (name) => `${name}=; Path=/; Expires=${new Date(0).toUTCString()}`,
+      ),
+    );
+  }
+
+  clearCookie(res, ['auth', 'refresh']);
+
+  if (req.isSocketRequest) {
+    return next();
+  }
+
   return res
-    .clearCookie('auth')
-    .clearCookie('refresh')
+    .setHeader('WWW-Authenticate', 'cookie-token')
     .status(401)
     .json({ message: 'Missing valid client credentials' });
 }
 
 export default async function checkAuthExpiry(
-  req: Request,
+  req: RequestWithSockets,
   res: Response,
   next: NextFunction,
 ) {
   if (req.cookies.auth === undefined) {
-    return denyAccess(res);
+    return denyAccess(req, res, next);
   }
   if (req.cookies.auth) {
     jwt.verify(
@@ -31,10 +59,8 @@ export default async function checkAuthExpiry(
       { ignoreExpiration: true },
       async (err, decoded) => {
         if (err) {
-          console.log(typeof err);
-          console.log(err);
-          console.log(JSON.stringify(err));
-          return next(err);
+          console.error(err.message);
+          return denyAccess(req, res, next);
         }
         if (
           typeof decoded === 'string' ||
@@ -42,7 +68,7 @@ export default async function checkAuthExpiry(
           decoded.exp === undefined ||
           decoded.sub === undefined
         ) {
-          return denyAccess(res);
+          return denyAccess(req, res, next);
         }
         if (new Date(Number(decoded.exp) * 1000) < new Date()) {
           if (req.cookies.refresh) {
@@ -59,25 +85,48 @@ export default async function checkAuthExpiry(
               );
               const { token: nextRefreshToken } =
                 await generateRefreshToken(user);
-              setRefreshCookie(res, nextRefreshToken);
 
               // renew auth JWT
               const encodedJwt = await signAuthJwt(user.email);
-              setAuthCookie(res, encodedJwt);
+
+              setAuthCookies(res, encodedJwt, nextRefreshToken);
+
+              if (req.isSocketRequest) {
+                req.user = user;
+              }
 
               return next();
             } else {
-              return denyAccess(res);
+              return denyAccess(req, res, next);
             }
           } else {
-            return denyAccess(res);
+            return denyAccess(req, res, next);
           }
+        }
+        if (req.isSocketRequest) {
+          const user: IUser = await User.findOne({
+            email: decoded.sub,
+          }).exec();
+          req.user = user;
         }
         return next();
       },
     );
   }
   if (req.cookies.auth === '') {
-    return denyAccess(res);
+    return denyAccess(req, res, next);
   }
+}
+
+export function verifySocketAuth(
+  req: RequestWithSockets,
+  res: Response,
+  next: NextFunction,
+) {
+  const isHandshake = req._query?.sid === undefined;
+  if (!isHandshake) {
+    return next();
+  }
+  req.isSocketRequest = true;
+  return checkAuthExpiry(req, res, next);
 }
