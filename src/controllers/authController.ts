@@ -33,8 +33,8 @@ export async function registerUser(
       });
     }
 
-    return res.status(201).json({
-      message: 'User registered successfully',
+    return res.status(200).json({
+      message: 'Confirmation email sent to provided address',
     });
   } catch (err) {
     return next(err);
