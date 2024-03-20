@@ -74,3 +74,14 @@ export async function logInUser(
     return next(err);
   }
 }
+
+export async function logOutUser(
+  _req: Request,
+  res: Response,
+  _next: NextFunction,
+) {
+  return res
+    .clearCookie('auth')
+    .clearCookie('refresh')
+    .json({ message: 'Logged out successfully' });
+}
