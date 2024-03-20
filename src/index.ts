@@ -18,6 +18,7 @@ const server = createServer({ key, cert }, app);
 const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_ADDRESS,
+    credentials: true,
   },
   transports: ['polling', 'websocket'],
 });
