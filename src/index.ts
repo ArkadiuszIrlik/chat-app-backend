@@ -2,6 +2,7 @@
 import '@config/env.config.js';
 import express, { Request, Response } from 'express';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { createServer } from 'node:https';
 import { readFile } from 'fs/promises';
 import { Server } from 'socket.io';
@@ -23,6 +24,7 @@ await connectToDb();
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.get('/', (_: Request, res: Response) => {
   res.send('Hello world!');
@@ -31,9 +33,7 @@ app.get('/', (_: Request, res: Response) => {
 io.on('connection', (socket) => {
   console.log(`connected with transport ${socket.conn.transport.name}`);
 
-  socket.conn.on('upgrade', (transport) => {
-    console.log(`transport upgraded to ${transport.name}`);
-  });
+io.engine.use(cookieParser());
 
   socket.on('disconnect', (reason) => {
     console.log(`disconnected due to ${reason}`);
