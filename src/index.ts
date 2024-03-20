@@ -7,6 +7,7 @@ import { createServer } from 'node:https';
 import { readFile } from 'fs/promises';
 import { Server } from 'socket.io';
 import connectToDb from '@config/db.config.js';
+import cors from 'cors';
 
 const key = await readFile('./localhost-key.pem');
 const cert = await readFile('./localhost.pem');
@@ -25,6 +26,12 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_ADDRESS,
+    credentials: true,
+  }),
+);
 
 app.get('/', (_: Request, res: Response) => {
   res.send('Hello world!');
