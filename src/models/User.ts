@@ -1,13 +1,13 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema, Types } from 'mongoose';
 
 export interface IUser extends mongoose.Document {
   email: string;
   password: string;
   username: string;
   profileImg: string;
-  serversMember: string[];
-  chatsMember: { userId: string; chatId: string }[];
-  friends: string[];
+  serversMember: Types.ObjectId[];
+  chatsMember: { userId: Types.ObjectId; chatId: Types.ObjectId }[];
+  friends: Types.ObjectId[];
   refreshTokens: { token: string; expDate: Date }[];
 }
 
