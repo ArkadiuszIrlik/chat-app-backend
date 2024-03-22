@@ -44,6 +44,32 @@ function denyAccess(
     .json({ message: 'Missing valid client credentials' });
 }
 
+/** Expires provided refresh token, removes expired tokens from DB and
+ *  generates and returns a new refresh token object.  */
+
+async function renewRefreshToken(user: IUser, currentToken: string) {
+  user.refreshTokens = user.refreshTokens.reduce<IUser['refreshTokens']>(
+    (arr, el: IUser['refreshTokens'][number]) => {
+      if (el.expDate < new Date()) {
+        return arr;
+      }
+      if (el.token === currentToken) {
+        // Instead of removing the current token outright, its expiry is
+        // changed to 10 seconds from now. This is done in case multiple
+        // requests are sent at the same time and client hasn't received
+        // the new token yet. This prevents the extra requests from being
+        // denied access.
+        el.expDate = new Date(Date.now() + 10000);
+      }
+      arr.push(el);
+      return arr;
+    },
+    [],
+  );
+
+  return generateRefreshToken(user);
+}
+
 export default async function checkAuthExpiry(
   req: RequestWithSockets,
   res: Response,
@@ -70,21 +96,23 @@ export default async function checkAuthExpiry(
         ) {
           return denyAccess(req, res, next);
         }
-        if (new Date(Number(decoded.exp) * 1000) < new Date()) {
+        const isAuthTokenExpired =
+          new Date(Number(decoded.exp) * 1000) < new Date();
+        if (isAuthTokenExpired) {
           if (req.cookies.refresh) {
             const user: IUser = await User.findOne({
               email: decoded.sub,
             }).exec();
             const isRefreshValid = !!user.refreshTokens.find(
-              (el) => el.token === req.cookies.refresh,
+              (el) =>
+                el.token === req.cookies.refresh && el.expDate >= new Date(),
             );
             if (isRefreshValid) {
               // renew refresh token
-              user.refreshTokens = user.refreshTokens.filter(
-                (el) => el.token !== req.cookies.refresh,
+              const { token: nextRefreshToken } = await renewRefreshToken(
+                user,
+                req.cookies.refresh,
               );
-              const { token: nextRefreshToken } =
-                await generateRefreshToken(user);
 
               // renew auth JWT
               const encodedJwt = await signAuthJwt(user.email);
