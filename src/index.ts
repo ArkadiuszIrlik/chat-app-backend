@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import { createServer } from 'node:https';
 import { readFile } from 'fs/promises';
 import { Server } from 'socket.io';
+import chatRouter from '@routes/chat.router.js';
 import connectToDb from '@config/db.config.js';
 import cors from 'cors';
 
@@ -38,8 +39,7 @@ app.get('/', (_: Request, res: Response) => {
   res.send('Hello world!');
 });
 
-io.on('connection', (socket) => {
-  console.log(`connected with transport ${socket.conn.transport.name}`);
+app.use('/chat', checkAuthExpiry, chatRouter);
 
 io.engine.use(cookieParser());
 
