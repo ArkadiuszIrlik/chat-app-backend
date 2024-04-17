@@ -9,6 +9,7 @@ import { Server } from 'socket.io';
 import chatRouter from '@routes/chat.router.js';
 import connectToDb from '@config/db.config.js';
 import cors from 'cors';
+import errorHandler from 'error-handler-json';
 
 const key = await readFile('./localhost-key.pem');
 const cert = await readFile('./localhost.pem');
@@ -41,6 +42,7 @@ app.get('/', (_: Request, res: Response) => {
 
 app.use('/chat', checkAuthExpiry, chatRouter);
 
+app.use(errorHandler({}));
 io.engine.use(cookieParser());
 
   socket.on('disconnect', (reason) => {
