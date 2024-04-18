@@ -112,3 +112,32 @@ export async function logOutUser(
     .clearCookie('refresh')
     .json({ message: 'Logged out successfully' });
 }
+
+export async function verifyEmail(
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) {
+  function denyToken() {
+    return res.status(404).json({ message: 'Invalid verification token' });
+  }
+  const verificationToken = req.query.token;
+  if (!verificationToken) {
+    return denyToken();
+  }
+  const tempUser = await TempUser.findOne({ verificationToken }).exec();
+
+  if (tempUser === null) {
+    return denyToken();
+  }
+  const isExpired = tempUser.expDate < new Date();
+  if (isExpired) {
+    return denyToken();
+  }
+
+  await User.create({ email: tempUser.email, password: tempUser.password });
+
+  return res.status(200).json({
+    message: 'Email address verified successfully',
+  });
+}
