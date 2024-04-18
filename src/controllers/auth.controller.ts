@@ -7,6 +7,14 @@ import {
   setRefreshCookie,
   signAuthJwt,
 } from '@helpers/auth.helpers.js';
+import { sendVerificationMail } from '@helpers/mail.helpers.js';
+import TempUser from '@models/TempUser.js';
+import {
+  CLIENT_RESET_PASSWORD_URL,
+  TEMP_USER_MAX_AGE,
+} from '@config/auth.config.js';
+import { getUserTrackingInfo } from '@helpers/tracking.helpers.js';
+import { CLIENT_EMAIL_VERIFICATION_URL } from '@config/mail.config.js';
 
 export async function registerUser(
   req: Request,
@@ -26,10 +34,25 @@ export async function registerUser(
       secret: Buffer.from(process.env.PASSWORD_PEPPER!),
     });
 
-    if ((await existingEmail) === null) {
-      await User.create({
+    const isExistingEmail = !!(await existingEmail);
+
+    if (!isExistingEmail) {
+      const verificationToken = crypto.randomUUID();
+      await TempUser.create({
         email,
         password: hashedPassword,
+        expDate: new Date(Date.now() + TEMP_USER_MAX_AGE),
+        verificationToken,
+      });
+      await sendVerificationMail(email, isExistingEmail, {
+        verificationUrl:
+          CLIENT_EMAIL_VERIFICATION_URL + `?token=${verificationToken}`,
+      });
+    } else {
+      const userLocationInfo = await getUserTrackingInfo(req);
+      await sendVerificationMail(email, isExistingEmail, {
+        resetPasswordUrl: CLIENT_RESET_PASSWORD_URL,
+        ...userLocationInfo,
       });
     }
 
