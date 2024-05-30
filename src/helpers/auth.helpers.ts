@@ -89,3 +89,9 @@ export async function generateRefreshToken(userDoc: IUser) {
     throw err;
   }
 }
+
+export function getEmailFromJwt(token: string) {
+  const decoded = jwt.decode(token);
+
+  return decoded?.sub ?? '';
+}
