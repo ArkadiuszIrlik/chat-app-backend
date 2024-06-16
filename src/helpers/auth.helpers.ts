@@ -3,7 +3,7 @@ import {
   AUTH_JWT_MAX_AGE,
   REFRESH_TOKEN_MAX_AGE,
 } from '@config/auth.config.js';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { IUser } from '@models/User.js';
 import mongoose from 'mongoose';
 
@@ -95,4 +95,25 @@ export function getEmailFromJwt(token: string) {
   const decoded = jwt.decode(token);
 
   return decoded?.sub ?? '';
+}
+
+export function getDecodedAuthFromJwt(
+  token: string,
+): Required<Request>['decodedAuth'] | null {
+  const decoded = jwt.decode(token);
+  if (!decoded) {
+    return null;
+  }
+  if (typeof decoded === 'string') {
+    return null;
+  }
+
+  if (typeof decoded.userId !== 'string') {
+    return null;
+  }
+  if (typeof decoded.email !== 'string') {
+    return null;
+  }
+
+  return decoded as Required<Request>['decodedAuth'];
 }
