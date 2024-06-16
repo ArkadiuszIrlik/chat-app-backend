@@ -5,11 +5,12 @@ import {
 } from '@config/auth.config.js';
 import { Response } from 'express';
 import { IUser } from '@models/User.js';
+import mongoose from 'mongoose';
 
-export function signAuthJwt(email: string) {
+export function signAuthJwt(userId: mongoose.Types.ObjectId, email: string) {
   return new Promise<string>((resolve, reject) => {
     jwt.sign(
-      {},
+      { userId },
       process.env.JWT_SECRET!,
       {
         expiresIn: `${AUTH_JWT_MAX_AGE}ms`,

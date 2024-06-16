@@ -88,7 +88,7 @@ export async function logInUser(
     if (!passwordMatch) {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
-    const token = await signAuthJwt(user.email);
+    const token = await signAuthJwt(user._id, user.email);
     setAuthCookie(res, token);
 
     const { token: refreshToken } = await generateRefreshToken(user);

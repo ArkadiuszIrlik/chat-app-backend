@@ -115,7 +115,7 @@ export default async function checkAuthExpiry(
               );
 
               // renew auth JWT
-              const encodedJwt = await signAuthJwt(user.email);
+              const encodedJwt = await signAuthJwt(user._id, user.email);
 
               setAuthCookies(res, encodedJwt, nextRefreshToken);
 
@@ -123,6 +123,7 @@ export default async function checkAuthExpiry(
                 req.user = user;
               }
 
+              req.decodedAuth = { userId: decoded.userId, email: decoded.sub };
               return next();
             } else {
               return denyAccess(req, res, next);
@@ -137,6 +138,7 @@ export default async function checkAuthExpiry(
           }).exec();
           req.user = user;
         }
+        req.decodedAuth = { userId: decoded.userId, email: decoded.sub };
         return next();
       },
     );
