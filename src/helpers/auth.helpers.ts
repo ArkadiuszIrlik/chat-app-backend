@@ -5,7 +5,7 @@ import {
 } from '@config/auth.config.js';
 import { Request, Response } from 'express';
 import { IUser } from '@models/User.js';
-import mongoose from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 
 export function signAuthJwt(userId: mongoose.Types.ObjectId, email: string) {
   return new Promise<string>((resolve, reject) => {
@@ -75,7 +75,7 @@ export function setAuthCookies(
 /** Adds a new refresh token to the provided DB user and returns the generated
  * token object.
  */
-export async function generateRefreshToken(userDoc: IUser) {
+export async function generateRefreshToken(userDoc: HydratedDocument<IUser>) {
   const token = crypto.randomUUID();
   const refreshTokenObj: IUser['refreshTokens'][number] = {
     token,

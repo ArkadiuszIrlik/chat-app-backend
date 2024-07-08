@@ -6,6 +6,7 @@ import {
   setAuthCookies,
   signAuthJwt,
 } from '@helpers/auth.helpers.js';
+import { HydratedDocument } from 'mongoose';
 
 interface RequestWithSockets extends Request {
   isSocketRequest?: boolean;
@@ -47,7 +48,10 @@ function denyAccess(
 /** Expires provided refresh token, removes expired tokens from DB and
  *  generates and returns a new refresh token object.  */
 
-async function renewRefreshToken(user: IUser, currentToken: string) {
+async function renewRefreshToken(
+  user: HydratedDocument<IUser>,
+  currentToken: string,
+) {
   user.refreshTokens = user.refreshTokens.reduce<IUser['refreshTokens']>(
     (arr, el: IUser['refreshTokens'][number]) => {
       if (el.expDate < new Date()) {
