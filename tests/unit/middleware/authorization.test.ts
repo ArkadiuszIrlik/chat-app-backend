@@ -10,6 +10,7 @@ jest.mock('@models/Server.js', () => ({
   findOne: jest.fn(),
 }));
 import Server, { IServer } from '@models/Server.js';
+import { HydratedDocument } from 'mongoose';
 
 describe('restrictAccess', () => {
   let mockRequest: Partial<Request>;
@@ -48,7 +49,7 @@ describe('restrictAccess', () => {
     const mockUserId = new mongoose.Types.ObjectId();
     mockRequest.user = {
       _id: mockUserId,
-    } as IUser;
+    } as HydratedDocument<IUser>;
 
     (Server.findOne as jest.Mock).mockImplementation(async () => ({
       _id: mockServerId,
@@ -74,7 +75,7 @@ describe('restrictAccess', () => {
     const restrict = restrictAccess([AuthRole.ServerOwner]);
     it('allows access when userId and ownerId are equal', async () => {
       const mockUserId = new mongoose.Types.ObjectId();
-      mockRequest.user = { _id: mockUserId } as IUser;
+      mockRequest.user = { _id: mockUserId } as HydratedDocument<IUser>;
       mockRequest.params = {
         serverId: new mongoose.Types.ObjectId().toString(),
       };
@@ -99,7 +100,7 @@ describe('restrictAccess', () => {
 
     it('denies access when server not found', async () => {
       const mockUserId = new mongoose.Types.ObjectId();
-      mockRequest.user = { _id: mockUserId } as IUser;
+      mockRequest.user = { _id: mockUserId } as HydratedDocument<IUser>;
       mockRequest.params = {
         serverId: new mongoose.Types.ObjectId().toString(),
       };
@@ -114,7 +115,7 @@ describe('restrictAccess', () => {
 
     it('denies access when serverId param is invalid', async () => {
       const mockUserId = new mongoose.Types.ObjectId();
-      mockRequest.user = { _id: mockUserId } as IUser;
+      mockRequest.user = { _id: mockUserId } as HydratedDocument<IUser>;
       mockRequest.params = {
         serverId: 'invalid-Id',
       };
@@ -134,7 +135,7 @@ describe('restrictAccess', () => {
       mockRequest.server = {
         _id: mockServerId,
         ownerId: new mongoose.Types.ObjectId(),
-      } as IServer;
+      } as HydratedDocument<IServer>;
       await restrict(
         mockRequest as Request,
         mockResponse as Response,
@@ -154,7 +155,7 @@ describe('restrictAccess', () => {
       };
 
       const mockUserId = new mongoose.Types.ObjectId();
-      mockRequest.user = { _id: mockUserId } as IUser;
+      mockRequest.user = { _id: mockUserId } as HydratedDocument<IUser>;
       (Server.findOne as jest.Mock).mockImplementationOnce(async () => ({
         members: [
           new mongoose.Types.ObjectId(),
@@ -177,7 +178,7 @@ describe('restrictAccess', () => {
       };
 
       const mockUserId = new mongoose.Types.ObjectId();
-      mockRequest.user = { _id: mockUserId } as IUser;
+      mockRequest.user = { _id: mockUserId } as HydratedDocument<IUser>;
       (Server.findOne as jest.Mock).mockImplementationOnce(async () => ({
         members: [
           new mongoose.Types.ObjectId(),
@@ -204,7 +205,7 @@ describe('restrictAccess', () => {
         userId: mockAccessedUserId.toString(),
       };
 
-      mockRequest.user = { _id: mockAccessedUserId } as IUser;
+      mockRequest.user = { _id: mockAccessedUserId } as HydratedDocument<IUser>;
 
       await restrict(
         mockRequest as Request,
@@ -220,7 +221,9 @@ describe('restrictAccess', () => {
         userId: mockAccessedUserId.toString(),
       };
 
-      mockRequest.user = { _id: new mongoose.Types.ObjectId() } as IUser;
+      mockRequest.user = {
+        _id: new mongoose.Types.ObjectId(),
+      } as HydratedDocument<IUser>;
 
       await restrict(
         mockRequest as Request,
