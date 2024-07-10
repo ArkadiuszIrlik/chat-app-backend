@@ -44,3 +44,29 @@ export async function createServer(req: Request, res: Response) {
     .json({ message: 'Server created.', data: { server: newServer } });
 }
 
+export async function generateInviteLink(req: Request, res: Response) {
+  // transformed to number by validation middleware
+  const expTime = req.query.expTime as unknown as number;
+  const inviteExpDate = new Date(Date.now() + expTime);
+
+  const serverId = req.params.serverId;
+  const serverPromise =
+    req.context.requestedServer ?? serversService.getServer(serverId);
+  const server = await serverPromise;
+  if (server === null) {
+    return res.status(404).json({ message: 'Server not found' });
+  }
+
+  const invite = await serversService.createInvite(server._id, inviteExpDate);
+  if (invite === null) {
+    return res.status(500).json({
+      message: "Couldn't generate invite",
+    });
+  }
+  const inviteUrl = serversService.getInviteUrlFromCode(invite.inviteCode);
+
+  return res
+    .status(201)
+    .json({ message: 'Invite generated successfully', data: { inviteUrl } });
+}
+
