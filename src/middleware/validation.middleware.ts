@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { Schema } from 'yup';
 import * as Yup from 'yup';
 
-type ValidatedProperties = 'body' | 'params' | 'query';
+type ValidatedProperties = 'body' | 'params' | 'query' | 'files';
 type ValidateObject = Partial<
   Record<ValidatedProperties, Record<string, Schema>>
 >;
@@ -22,6 +22,7 @@ function validate(validateObject: ValidateObject) {
         body: req.body,
         params: req.params,
         query: req.query,
+        files: req.files,
       })) as Record<ValidatedProperties, Record<string, any>>;
 
       (Object.keys(resObject) as ValidatedProperties[]).forEach((property) => {
