@@ -1,5 +1,7 @@
 import Server, { IServer } from '@models/Server.js';
-import { HydratedDocument } from 'mongoose';
+import ServerInvite, { IServerInvite } from '@models/ServerInvite.js';
+import mongoose, { HydratedDocument } from 'mongoose';
+import ShortUniqueId from 'short-unique-id';
 
 function populateServerMembers(server: HydratedDocument<IServer>) {
   return server.populate({
@@ -55,4 +57,33 @@ async function createServer(
   return newServer;
 }
 
-export { getServer, createServer };
+async function createInvite(
+  serverId: mongoose.Types.ObjectId,
+  expirationDate: Date,
+) {
+  const uid = new ShortUniqueId({ dictionary: 'alphanum_upper', length: 10 });
+  let inviteDoc: HydratedDocument<IServerInvite> | null = null;
+  try {
+    const inviteCode = uid.randomUUID();
+    const doc = new ServerInvite({
+      inviteCode,
+      server: serverId,
+      expDate: expirationDate,
+    });
+    await doc.save();
+    inviteDoc = doc;
+  } catch {
+    const newInviteCode = uid.randomUUID();
+    const doc = new ServerInvite({
+      inviteCode: newInviteCode,
+      server: serverId,
+      expDate: expirationDate,
+    });
+    await doc.save();
+    inviteDoc = doc;
+  }
+
+  return inviteDoc;
+}
+
+export { getServer, createServer, createInvite };
