@@ -10,9 +10,7 @@ import chatRouter from '@routes/chat.router.js';
 import connectToDb from '@config/db.config.js';
 import cors from 'cors';
 import errorHandler from 'error-handler-json';
-
-const key = await readFile('./localhost-key.pem');
-const cert = await readFile('./localhost.pem');
+import fileUpload from 'express-fileupload';
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -28,6 +26,16 @@ await connectToDb();
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(
+  fileUpload({
+    createParentPath: true,
+    tempFileDir: './tmp/',
+    useTempFiles: true,
+    limits: {
+      fileSize: 2 * 1024 * 1024,
+    },
+  }),
+);
 app.use(cookieParser());
 app.use(
   cors({
