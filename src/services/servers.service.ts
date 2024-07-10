@@ -1,3 +1,5 @@
+import { SERVER_INVITE_PATH } from '@config/client.config.js';
+import { getClientUrl } from '@helpers/fetch.helpers.js';
 import Server, { IServer } from '@models/Server.js';
 import ServerInvite, { IServerInvite } from '@models/ServerInvite.js';
 import mongoose, { HydratedDocument } from 'mongoose';
@@ -86,4 +88,8 @@ async function createInvite(
   return inviteDoc;
 }
 
-export { getServer, createServer, createInvite };
+function getInviteUrlFromCode(inviteCode: string) {
+  return getClientUrl(SERVER_INVITE_PATH + inviteCode);
+}
+
+export { getServer, createServer, createInvite, getInviteUrlFromCode };
