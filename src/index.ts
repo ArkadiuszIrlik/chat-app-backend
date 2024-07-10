@@ -43,6 +43,12 @@ app.use(
     credentials: true,
   }),
 );
+app.use((req, _res, next) => {
+  if (req.context === undefined) {
+    req.context = {};
+  }
+  return next();
+});
 
 app.get('/', (_: Request, res: Response) => {
   res.send('Hello world!');
