@@ -1,6 +1,19 @@
 import User, { IUser } from '@models/User.js';
 import { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
+
+async function _getUserFromParam(userParam: HydratedDocument<IUser> | string) {
+  if (typeof userParam === 'string') {
+    const user = await User.findById(userParam).exec();
+    if (user === null) {
+      throw Error('User not found');
+    }
+    return user;
+  } else {
+    return userParam;
+  }
+}
+
 async function getUser(userId: string) {
   const user = await User.findById(userId).exec();
 
