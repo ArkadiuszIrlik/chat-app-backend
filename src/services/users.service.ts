@@ -40,4 +40,22 @@ async function addServerAsMember(
   return userToModify;
 }
 
-export { getUser, addServerAsMember };
+async function checkIfIsInServer(
+  user: HydratedDocument<IUser>,
+  serverId: string,
+): Promise<boolean>;
+async function checkIfIsInServer(
+  userId: string,
+  serverId: string,
+): Promise<boolean>;
+async function checkIfIsInServer(
+  user: HydratedDocument<IUser> | string,
+  serverId: string,
+) {
+  const userToCheck = await _getUserFromParam(user);
+  const isMember = !!userToCheck.serversIn.find((id) => id.equals(serverId));
+
+  return isMember;
+}
+
+export { getUser, addServerAsMember, checkIfIsInServer };
