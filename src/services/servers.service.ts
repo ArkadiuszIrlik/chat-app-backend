@@ -92,4 +92,7 @@ function getInviteUrlFromCode(inviteCode: string) {
   return getClientUrl(SERVER_INVITE_PATH + inviteCode);
 }
 
-export { getServer, createServer, createInvite, getInviteUrlFromCode };
+function findInvite(inviteCode: string) {
+  return ServerInvite.findOne({ inviteCode }).exec();
+}
+
