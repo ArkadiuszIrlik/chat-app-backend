@@ -12,6 +12,20 @@ function populateServerMembers(server: HydratedDocument<IServer>) {
   });
 }
 
+async function _getServerFromParam(
+  serverParam: HydratedDocument<IServer> | string,
+) {
+  if (typeof serverParam === 'string') {
+    const server = await getServer(serverParam);
+    if (!server) {
+      throw Error('Server not found');
+    }
+    return server;
+  } else {
+    return serverParam;
+  }
+}
+
 async function getServer(
   serverId: string,
   { populateMembers = false }: { populateMembers?: boolean } = {},
