@@ -128,3 +128,12 @@ async function checkIfUserIsMember(
   return isMember;
 }
 
+
+export {
+  getServer,
+  createServer,
+  createInvite,
+  getInviteUrlFromCode,
+  findInvite,
+  checkIfUserIsMember,
+};
