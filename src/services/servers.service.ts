@@ -110,3 +110,21 @@ function findInvite(inviteCode: string) {
   return ServerInvite.findOne({ inviteCode }).exec();
 }
 
+async function checkIfUserIsMember(
+  server: HydratedDocument<IServer>,
+  userId: string,
+): Promise<boolean>;
+async function checkIfUserIsMember(
+  serverId: string,
+  userId: string,
+): Promise<boolean>;
+async function checkIfUserIsMember(
+  server: HydratedDocument<IServer> | string,
+  userId: string,
+) {
+  const serverToCheck = await _getServerFromParam(server);
+  const isMember = !!serverToCheck.members.find((id) => id.equals(userId));
+
+  return isMember;
+}
+
