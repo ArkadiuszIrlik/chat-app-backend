@@ -32,16 +32,7 @@ async function addServerAsMember(
   user: string | HydratedDocument<IUser>,
   serverId: mongoose.Types.ObjectId,
 ) {
-  let userToModify: HydratedDocument<IUser>;
-  if (typeof user === 'string') {
-    const nextUser = await User.findById(user).exec();
-    if (nextUser === null) {
-      throw Error('User not found');
-    }
-    userToModify = nextUser;
-  } else {
-    userToModify = user;
-  }
+  const userToModify = await _getUserFromParam(user);
 
   userToModify.serversIn.push(serverId);
   await userToModify.save();
