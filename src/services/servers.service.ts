@@ -128,6 +128,26 @@ async function checkIfUserIsMember(
   return isMember;
 }
 
+async function addMember(
+  server: HydratedDocument<IServer>,
+  userId: string,
+): Promise<HydratedDocument<IServer>>;
+async function addMember(
+  serverId: string,
+  userId: string,
+): Promise<HydratedDocument<IServer>>;
+async function addMember(
+  server: HydratedDocument<IServer> | string,
+  userId: string,
+) {
+  const serverToModify = await _getServerFromParam(server);
+
+  serverToModify.members.push(new mongoose.Types.ObjectId(userId));
+  await serverToModify.save();
+
+  return serverToModify;
+}
+
 
 export {
   getServer,
@@ -136,4 +156,5 @@ export {
   getInviteUrlFromCode,
   findInvite,
   checkIfUserIsMember,
+  addMember,
 };
