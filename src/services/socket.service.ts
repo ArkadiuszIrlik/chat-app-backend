@@ -27,3 +27,7 @@ function emitServerUpdated(
     .to(server.socketId.toString())
     .emit(SocketEvents.ServerUpdated, server._id.toString());
 }
+export {
+  emitUserJoinedServer,
+  emitServerUpdated,
+};
