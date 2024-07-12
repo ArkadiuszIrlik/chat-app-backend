@@ -145,6 +145,80 @@ async function addMember(
   return serverToModify;
 }
 
+async function createChannelCategory(
+  server: HydratedDocument<IServer> | string,
+  categoryName: string,
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const serverToModify = await _getServerFromParam(server);
+
+  serverToModify.channelCategories.push({
+    _id: new mongoose.Types.ObjectId(),
+    name: categoryName,
+    channels: [],
+  });
+
+  if (saveDocument) {
+    await serverToModify.save();
+  }
+
+  return serverToModify;
+}
+
+async function createChannel(
+  server: HydratedDocument<IServer> | string,
+  channelName: string,
+  categoryId: string,
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const serverToModify = await _getServerFromParam(server);
+
+  const categoryToModify = serverToModify.channelCategories.find((category) =>
+    category._id.equals(categoryId),
+  );
+  if (!categoryToModify) {
+    throw Error('Category not found');
+  }
+
+  categoryToModify.channels.push({
+    _id: new mongoose.Types.ObjectId(),
+    name: channelName,
+    type: 'text',
+    socketId: new mongoose.Types.ObjectId(),
+  });
+
+  if (saveDocument) {
+    await serverToModify.save();
+  }
+
+  return serverToModify;
+}
+
+async function createChannelAndCategory(
+  server: HydratedDocument<IServer> | string,
+  channelName: string,
+  channelCategoryName: string,
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const serverToModify = await _getServerFromParam(server);
+
+  const categoryId = new mongoose.Types.ObjectId();
+  serverToModify.channelCategories.push({
+    _id: categoryId,
+    name: channelCategoryName,
+    channels: [],
+  });
+
+  await createChannel(serverToModify, channelName, categoryId.toString(), {
+    saveDocument: false,
+  });
+
+  if (saveDocument) {
+    await serverToModify.save();
+  }
+
+  return serverToModify;
+}
 
 export {
   getServer,
@@ -154,4 +228,7 @@ export {
   findInvite,
   checkIfUserIsMember,
   addMember,
+  createChannelCategory,
+  createChannel,
+  createChannelAndCategory,
 };
