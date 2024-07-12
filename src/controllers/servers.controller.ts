@@ -1,4 +1,6 @@
+import { IServer } from '@models/Server.js';
 import { NextFunction, Request, Response } from 'express';
+import { HydratedDocument } from 'mongoose';
 import * as serversService from '@services/servers.service.js';
 import * as usersService from '@services/users.service.js';
 import * as imagesService from '@services/images.service.js';
@@ -118,3 +120,32 @@ export async function processInviteCode(req: Request, res: Response) {
     .json({ message: 'Successfully joined server', data: { server } });
 }
 
+export async function createChannel(req: Request, res: Response) {
+  const serverId = req.params.serverId;
+  const { channelName, channelCategoryId, channelCategoryName, isNewCategory } =
+    req.body;
+
+  let server: HydratedDocument<IServer>;
+  let responseMessage = '';
+  if (isNewCategory) {
+    const nextServer = await serversService.createChannelAndCategory(
+      serverId,
+      channelName,
+      channelCategoryName,
+    );
+    server = nextServer;
+    responseMessage = 'Channel and channel group created';
+  } else {
+    const nextServer = await serversService.createChannel(
+      serverId,
+      channelName,
+      channelCategoryId,
+    );
+    server = nextServer;
+    responseMessage = 'Channel created';
+  }
+
+  socketService.emitServerUpdated(req.socketIo, server);
+
+  return res.status(201).json({ message: responseMessage });
+}
