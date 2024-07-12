@@ -19,4 +19,11 @@ function emitUserJoinedServer(
   );
 }
 
-export { emitUserJoinedServer };
+function emitServerUpdated(
+  socketIo: SocketServer,
+  server: HydratedDocument<IServer>,
+) {
+  socketIo
+    .to(server.socketId.toString())
+    .emit(SocketEvents.ServerUpdated, server._id.toString());
+}
