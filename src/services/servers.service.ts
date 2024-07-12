@@ -5,7 +5,7 @@ import ServerInvite, { IServerInvite } from '@models/ServerInvite.js';
 import mongoose, { HydratedDocument } from 'mongoose';
 import ShortUniqueId from 'short-unique-id';
 
-function populateServerMembers(server: HydratedDocument<IServer>) {
+function _populateServerMembers(server: HydratedDocument<IServer>) {
   return server.populate({
     path: 'members',
     select: 'username profileImg',
@@ -38,7 +38,7 @@ async function getServer(
     throw err;
   }
   if (server && populateMembers) {
-    await populateServerMembers(server);
+    await _populateServerMembers(server);
   }
 
   return server;
@@ -64,10 +64,7 @@ async function createServer(
   });
 
   if (newServer && populateMembers) {
-    await newServer.populate({
-      path: 'members',
-      select: 'username profileImg',
-    });
+    await _populateServerMembers(newServer as HydratedDocument<IServer>);
   }
 
   return newServer;
