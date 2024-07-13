@@ -1,3 +1,4 @@
+import jsonpatch from 'jsonpatch';
 import { IServer } from '@models/Server.js';
 import { HydratedDocument } from 'mongoose';
 
@@ -10,6 +11,44 @@ function getPatchableServer(server: HydratedDocument<IServer>) {
   const patchableDoc = { name, serverImg, channelCategories };
 
   return patchableDoc;
+}
+/** Uses JSONPatch to modify the provided target document.
+ *
+ * @param targetDoc mongoose document you want to patch
+ * @param patchableSubset a document containing only the properties
+ * you want to be patchable
+ * @param patch a correctly formatted array of JSONPatch documents
+ * @param pathToPatch optional path string using mongo dot notation
+ * in case you want to patch a nested object
+ * @returns mutated version of the targetDoc with the patch applied
+ */
+function patchDoc(
+  targetDoc: Record<string, any>,
+  patchableSubset: Record<string, any>,
+  patch: string | any[],
+  pathToPatch?: string,
+) {
+  const patchedDoc = jsonpatch.apply_patch(patchableSubset, patch);
+  // makes sure the client doesn't add properties not included in
+  // patchableDoc
+  const processedPatchedDoc: typeof patchableSubset = {};
+  Object.keys(patchableSubset).forEach(
+    (key) => (processedPatchedDoc[key] = patchedDoc[key]),
+  );
+
+  // flatten returns object in format {$set: updateObject}, hence
+  // the call to Object.values to extract updateObject
+  const flattenedPatchedDoc: Record<string, any> =
+    Object.values(flatten(processedPatchedDoc, { array: true }))[0] ?? {};
+
+  const updateObject: Record<string, any> = {};
+  Object.keys(flattenedPatchedDoc).forEach((key) => {
+    updateObject[`${pathToPatch ? `${pathToPatch}.${key}` : key}`] =
+      flattenedPatchedDoc[key];
+  });
+
+  targetDoc.set(updateObject);
+  return targetDoc;
 }
 function updateCommandValue(patch: any[], pathToCommand: string, value: any) {
   patch.forEach((command) => {
@@ -37,6 +76,7 @@ function checkIfPatchHasProperty(patch: any[], propertyPointer: string) {
 
 export {
   getPatchableServer,
+  patchDoc,
   updateCommandValue,
   checkIfPatchHasProperty,
 };
