@@ -1,10 +1,12 @@
-import { IServer } from '@models/Server.js';
+import { IServer, ServerImage } from '@models/Server.js';
 import { NextFunction, Request, Response } from 'express';
 import { HydratedDocument } from 'mongoose';
 import * as serversService from '@services/servers.service.js';
 import * as usersService from '@services/users.service.js';
 import * as imagesService from '@services/images.service.js';
 import * as socketService from '@services/socket.service.js';
+import * as patchService from '@services/patch.service.js';
+import * as uploadedFilesService from '@services/uploadedFiles.service.js';
 import fileUpload from 'express-fileupload';
 
 export async function getServer(req: Request, res: Response) {
@@ -164,4 +166,53 @@ export async function deleteServer(req: Request, res: Response) {
   socketService.disconnectAllFromServer(req.socketIo, server);
 
   return res.status(200).json({ message: 'Server deleted' });
+}
+
+export async function updateServer(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const serverId = req.params.serverId;
+  // type tested by validation middleware
+  const tempPatch = req.files?.patch as fileUpload.UploadedFile;
+
+  const patchBuffer = await uploadedFilesService.readTempFile(tempPatch);
+  uploadedFilesService.removeTempFile(tempPatch);
+
+  const patch = JSON.parse(patchBuffer.toString());
+  if (!Array.isArray(patch)) {
+    return res.status(404).json({ message: 'Invalid PATCH data' });
+  }
+
+  const isServerImgUpdate = patchService.checkIfPatchHasProperty(
+    patch,
+    '/serverImg',
+  );
+
+  let serverImgObj: ServerImage | null = null;
+  if (isServerImgUpdate) {
+    // type tested by validation middleware
+    const serverImgFile = req.files?.serverImg as fileUpload.UploadedFile;
+    serverImgObj = await imagesService.saveServerImage(serverImgFile);
+    patchService.updateCommandValue(patch, '/serverImg', serverImgObj);
+  }
+
+  const server =
+    req.context.requestedServer ?? (await serversService.getServer(serverId));
+  if (!server) {
+    return res.status(404).json({ message: 'Server not found' });
+  }
+
+  try {
+    await serversService.patchServer(server, patch);
+  } catch (err) {
+    if (isServerImgUpdate && serverImgObj) {
+      await imagesService.removeImage(serverImgObj.pathname);
+    }
+    return next(err);
+  }
+  socketService.emitServerUpdated(req.socketIo, server);
+
+  return res.status(200).json({ message: 'Server updated' });
 }
