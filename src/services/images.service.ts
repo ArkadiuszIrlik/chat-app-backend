@@ -1,6 +1,7 @@
 import { SERVER_IMAGES_PATH } from '@config/data.config.js';
 import { ServerImage } from '@models/Server.js';
 import fileUpload from 'express-fileupload';
+import * as filesService from '@services/files.service.js';
 
 async function _saveImageAsset(
   imageBuffer: fileUpload.UploadedFile,
@@ -24,4 +25,8 @@ async function saveServerImage(imageBuffer: fileUpload.UploadedFile) {
   return _saveImageAsset(imageBuffer, SERVER_IMAGES_PATH);
 }
 
-export { saveServerImage };
+function removeImage(pathname: string) {
+  return filesService.removeFile(`./assets/${pathname}`);
+}
+
+export { saveServerImage, removeImage };
