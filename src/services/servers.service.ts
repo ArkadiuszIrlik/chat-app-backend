@@ -4,6 +4,7 @@ import Server, { IServer } from '@models/Server.js';
 import ServerInvite, { IServerInvite } from '@models/ServerInvite.js';
 import mongoose, { HydratedDocument } from 'mongoose';
 import ShortUniqueId from 'short-unique-id';
+import * as patchService from '@services/patch.service.js';
 
 function _populateServerMembers(server: HydratedDocument<IServer>) {
   return server.populate({
@@ -224,6 +225,23 @@ function deleteServer(serverId: string) {
   return Server.deleteOne({ _id: serverId }).exec();
 }
 
+async function patchServer(
+  server: HydratedDocument<IServer> | string,
+  patch: string | any[],
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const serverToPatch = await _getServerFromParam(server);
+  const patchableServer = patchService.getPatchableServer(serverToPatch);
+  const patchedServer = patchService.patchDoc(
+    serverToPatch,
+    patchableServer,
+    patch,
+  );
+
+  if (saveDocument) {
+    await patchedServer.save();
+  }
+}
 
 export {
   getServer,
@@ -237,4 +255,5 @@ export {
   createChannel,
   createChannelAndCategory,
   deleteServer,
+  patchServer,
 };
