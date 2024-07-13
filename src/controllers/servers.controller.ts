@@ -149,3 +149,19 @@ export async function createChannel(req: Request, res: Response) {
 
   return res.status(201).json({ message: responseMessage });
 }
+
+export async function deleteServer(req: Request, res: Response) {
+  const serverId = req.params.serverId;
+  const server =
+    req.context.requestedServer ?? (await serversService.getServer(serverId));
+  if (!server) {
+    return res.status(404).json({ message: 'Server not found' });
+  }
+
+  await serversService.deleteServer(serverId);
+
+  socketService.emitServerDeleted(req.socketIo, server);
+  socketService.disconnectAllFromServer(req.socketIo, server);
+
+  return res.status(200).json({ message: 'Server deleted' });
+}
