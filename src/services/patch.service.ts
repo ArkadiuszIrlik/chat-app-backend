@@ -1,7 +1,14 @@
 import jsonpatch from 'jsonpatch';
+import { IUser } from '@models/User.js';
 import { IChannel, IChannelCategory, IServer } from '@models/Server.js';
 import { flatten } from 'mongo-dot-notation';
 import { HydratedDocument } from 'mongoose';
+
+function getPatchableUser(user: HydratedDocument<IUser>) {
+  const { username, profileImg, prefersOnlineStatus } = user.toObject();
+  const patchableDoc = { username, profileImg, prefersOnlineStatus };
+  return patchableDoc;
+}
 
 /** Takes a Server document and returns an object with a subset of
  * its properties that are safe to use with JSON Patch.
@@ -89,6 +96,7 @@ function checkIfPatchHasProperty(patch: any[], propertyPointer: string) {
 }
 
 export {
+  getPatchableUser,
   getPatchableServer,
   getPatchableChannelCategory,
   getPatchableChannel,
