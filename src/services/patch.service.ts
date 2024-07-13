@@ -1,3 +1,12 @@
+function updateCommandValue(patch: any[], pathToCommand: string, value: any) {
+  patch.forEach((command) => {
+    if (command?.path === pathToCommand) {
+      command.value = value;
+    }
+  });
+  return patch;
+}
+
 /** Checks if provided JSON Patch document includes a command
  * targeting a property at provided path.
  *
@@ -14,5 +23,6 @@ function checkIfPatchHasProperty(patch: any[], propertyPointer: string) {
 }
 
 export {
+  updateCommandValue,
   checkIfPatchHasProperty,
 };
