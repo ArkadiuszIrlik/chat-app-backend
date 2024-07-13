@@ -31,6 +31,40 @@ describe('getUser', () => {
     expect(User.findById).toHaveBeenCalled();
     expect(returnedUser?._id).toEqual(mockUser._id);
   });
+
+  it("doesn't populate serversIn property if not explicitly specified", async () => {
+    const mockUser = {
+      _id: 'test-id',
+      name: 'test server',
+      populate: jest.fn(),
+    };
+    (User.findById as jest.Mock).mockReturnValueOnce({
+      exec: jest.fn().mockResolvedValue(mockUser),
+    });
+    const returnedUser = await getUser(mockUser._id.toString());
+
+    expect(User.findById).toHaveBeenCalled();
+    expect(returnedUser?._id).toEqual(mockUser._id);
+    expect(returnedUser?.populate).not.toHaveBeenCalled();
+  });
+
+  it('populates serversIn property when explicitly specified', async () => {
+    const mockUser = {
+      _id: 'test-id',
+      name: 'test server',
+      populate: jest.fn(),
+    };
+    (User.findById as jest.Mock).mockReturnValueOnce({
+      exec: jest.fn().mockResolvedValue(mockUser),
+    });
+    const returnedUser = await getUser(mockUser._id.toString(), {
+      populateServersIn: true,
+    });
+
+    expect(User.findById).toHaveBeenCalled();
+    expect(returnedUser?._id).toEqual(mockUser._id);
+    expect(returnedUser?.populate).toHaveBeenCalled();
+  });
 });
 
 describe('addServerAsMember', () => {
