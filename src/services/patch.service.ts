@@ -1,5 +1,5 @@
 import jsonpatch from 'jsonpatch';
-import { IServer } from '@models/Server.js';
+import { IChannel, IChannelCategory, IServer } from '@models/Server.js';
 import { flatten } from 'mongo-dot-notation';
 import { HydratedDocument } from 'mongoose';
 
@@ -13,6 +13,19 @@ function getPatchableServer(server: HydratedDocument<IServer>) {
 
   return patchableDoc;
 }
+
+function getPatchableChannelCategory(category: IChannelCategory) {
+  const { name } = category;
+  const patchableDoc = { name };
+  return patchableDoc;
+}
+
+function getPatchableChannel(channel: IChannel) {
+  const { name } = channel;
+  const patchableDoc = { name };
+  return patchableDoc;
+}
+
 /** Uses JSONPatch to modify the provided target document.
  *
  * @param targetDoc mongoose document you want to patch
@@ -77,6 +90,8 @@ function checkIfPatchHasProperty(patch: any[], propertyPointer: string) {
 
 export {
   getPatchableServer,
+  getPatchableChannelCategory,
+  getPatchableChannel,
   patchDoc,
   updateCommandValue,
   checkIfPatchHasProperty,
