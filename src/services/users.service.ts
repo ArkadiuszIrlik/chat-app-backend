@@ -14,9 +14,14 @@ async function _getUserFromParam(userParam: HydratedDocument<IUser> | string) {
   }
 }
 
-async function getUser(userId: string) {
+async function getUser(
+  userId: string,
+  { populateServersIn = false }: { populateServersIn?: boolean } = {},
+) {
   const user = await User.findById(userId).exec();
-
+  if (user && populateServersIn) {
+    user.populate('serversIn');
+  }
   return user;
 }
 
