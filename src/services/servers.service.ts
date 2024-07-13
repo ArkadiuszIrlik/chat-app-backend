@@ -220,6 +220,11 @@ async function createChannelAndCategory(
   return serverToModify;
 }
 
+function deleteServer(serverId: string) {
+  return Server.deleteOne({ _id: serverId }).exec();
+}
+
+
 export {
   getServer,
   createServer,
@@ -231,4 +236,5 @@ export {
   createChannelCategory,
   createChannel,
   createChannelAndCategory,
+  deleteServer,
 };
