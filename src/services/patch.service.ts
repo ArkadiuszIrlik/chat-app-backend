@@ -24,7 +24,7 @@ function getPatchableServer(server: HydratedDocument<IServer>) {
  * @returns mutated version of the targetDoc with the patch applied
  */
 function patchDoc(
-  targetDoc: Record<string, any>,
+  targetDoc: HydratedDocument<Record<string, any>>,
   patchableSubset: Record<string, any>,
   patch: string | any[],
   pathToPatch?: string,
