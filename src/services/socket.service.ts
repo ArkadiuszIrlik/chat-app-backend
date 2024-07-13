@@ -36,8 +36,16 @@ function emitServerDeleted(
     .to(server.socketId.toString())
     .emit(SocketEvents.ServerDeleted, server._id.toString());
 }
+
+function disconnectAllFromServer(
+  socketIo: SocketServer,
+  server: HydratedDocument<IServer>,
+) {
+  socketIo.socketsLeave(server.socketId.toString());
+}
 export {
   emitUserJoinedServer,
   emitServerUpdated,
   emitServerDeleted,
+  disconnectAllFromServer,
 };
