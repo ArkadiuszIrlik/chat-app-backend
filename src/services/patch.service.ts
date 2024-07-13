@@ -6,8 +6,8 @@ import { HydratedDocument } from 'mongoose';
  * its properties that are safe to use with JSON Patch.
  */
 function getPatchableServer(server: HydratedDocument<IServer>) {
-  const { name, channelCategories } = server;
-  const serverImg = server.get('serverImg', null, { getters: false });
+  const { name, channelCategories, serverImg } = server.toObject();
+
   const patchableDoc = { name, serverImg, channelCategories };
 
   return patchableDoc;
