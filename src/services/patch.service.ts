@@ -1,5 +1,6 @@
 import jsonpatch from 'jsonpatch';
 import { IServer } from '@models/Server.js';
+import { flatten } from 'mongo-dot-notation';
 import { HydratedDocument } from 'mongoose';
 
 /** Takes a Server document and returns an object with a subset of
