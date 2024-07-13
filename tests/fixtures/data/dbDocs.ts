@@ -23,13 +23,13 @@ function getServerFixture(dataOverride: Partial<IServer> = {}): IServer {
         name: 'Test Category 1',
         channels: [
           {
-            //   _id: new mongoose.Types.ObjectId(),
+            _id: new mongoose.Types.ObjectId(),
             name: 'Test Channel 1',
             type: 'text',
             socketId: new mongoose.Types.ObjectId(),
           },
           {
-            //   _id: new mongoose.Types.ObjectId(),
+            _id: new mongoose.Types.ObjectId(),
             name: 'Test Channel 2',
             type: 'text',
             socketId: new mongoose.Types.ObjectId(),
@@ -41,13 +41,13 @@ function getServerFixture(dataOverride: Partial<IServer> = {}): IServer {
         name: 'Test Category 2',
         channels: [
           {
-            //   _id: new mongoose.Types.ObjectId(),
+            _id: new mongoose.Types.ObjectId(),
             name: 'Test Channel 3',
             type: 'text',
             socketId: new mongoose.Types.ObjectId(),
           },
           {
-            //   _id: new mongoose.Types.ObjectId(),
+            _id: new mongoose.Types.ObjectId(),
             name: 'Test Channel 4',
             type: 'text',
             socketId: new mongoose.Types.ObjectId(),
