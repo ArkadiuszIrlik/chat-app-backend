@@ -27,7 +27,17 @@ function emitServerUpdated(
     .to(server.socketId.toString())
     .emit(SocketEvents.ServerUpdated, server._id.toString());
 }
+
+function emitServerDeleted(
+  socketIo: SocketServer,
+  server: HydratedDocument<IServer>,
+) {
+  socketIo
+    .to(server.socketId.toString())
+    .emit(SocketEvents.ServerDeleted, server._id.toString());
+}
 export {
   emitUserJoinedServer,
   emitServerUpdated,
+  emitServerDeleted,
 };
