@@ -194,6 +194,9 @@ export async function updateServer(
   if (isServerImgUpdate) {
     // type tested by validation middleware
     const serverImgFile = req.files?.serverImg as fileUpload.UploadedFile;
+    if (!serverImgFile) {
+      return res.status(404).json({ message: 'Missing serverImg upload' });
+    }
     serverImgObj = await imagesService.saveServerImage(serverImgFile);
     patchService.updateCommandValue(patch, '/serverImg', serverImgObj);
   }
