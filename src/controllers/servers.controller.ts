@@ -1,4 +1,4 @@
-import { IServer, ServerImage } from '@models/Server.js';
+import { IServer } from '@models/Server.js';
 import { NextFunction, Request, Response } from 'express';
 import { HydratedDocument } from 'mongoose';
 import * as serversService from '@services/servers.service.js';
@@ -8,6 +8,7 @@ import * as socketService from '@services/socket.service.js';
 import * as patchService from '@services/patch.service.js';
 import * as uploadedFilesService from '@services/uploadedFiles.service.js';
 import fileUpload from 'express-fileupload';
+import { ImageObject } from '@src/typesModule.js';
 
 export async function getServer(req: Request, res: Response) {
   const serverId = req.params.serverId;
@@ -190,7 +191,7 @@ export async function updateServer(
     '/serverImg',
   );
 
-  let serverImgObj: ServerImage | null = null;
+  let serverImgObj: ImageObject | null = null;
   if (isServerImgUpdate) {
     // type tested by validation middleware
     const serverImgFile = req.files?.serverImg as fileUpload.UploadedFile;
