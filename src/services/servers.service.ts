@@ -241,6 +241,9 @@ async function patchServer(
   if (saveDocument) {
     await patchedServer.save();
   }
+
+  return patchedServer;
+}
 }
 
 export {

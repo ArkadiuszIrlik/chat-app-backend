@@ -76,6 +76,8 @@ async function patchUser(
   if (saveDocument) {
     await patchedUser.save();
   }
+
+  return patchedUser;
 }
 export {
   getUser,
