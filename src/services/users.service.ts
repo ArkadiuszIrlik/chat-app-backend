@@ -82,5 +82,8 @@ async function patchUser(
   }
 }
 export {
+  getUser,
+  addServerAsMember,
+  checkIfIsInServer,
   patchUser,
 };
