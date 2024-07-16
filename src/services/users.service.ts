@@ -1,6 +1,7 @@
 import User, { IUser } from '@models/User.js';
 import { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
+import * as patchService from '@services/patch.service.js';
 
 async function _getUserFromParam(userParam: HydratedDocument<IUser> | string) {
   if (typeof userParam === 'string') {
@@ -63,4 +64,23 @@ async function checkIfIsInServer(
   return isMember;
 }
 
-export { getUser, addServerAsMember, checkIfIsInServer };
+async function patchUser(
+  user: HydratedDocument<IUser> | string,
+  patch: string | any[],
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const userToPatch = await _getUserFromParam(user);
+  const patchableUser = patchService.getPatchableUser(userToPatch);
+  const patchedServer = patchService.patchDoc(
+    userToPatch,
+    patchableUser,
+    patch,
+  );
+
+  if (saveDocument) {
+    await patchedServer.save();
+  }
+}
+export {
+  patchUser,
+};
