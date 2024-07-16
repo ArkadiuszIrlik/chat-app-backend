@@ -5,6 +5,12 @@ interface TemplateMailOptions extends Mail.Options {
   template?: string;
   text_template?: string;
 }
+enum UserOnlineStatus {
+  Online = 'ONLINE',
+  Away = 'AWAY',
+  DoNotDisturb = 'DO NOT DISTURB',
+  Offline = 'OFFLINE',
+}
 
 interface ImageObject {
   pathname: string;
@@ -12,4 +18,4 @@ interface ImageObject {
   ext: string;
 }
 
-export { TemplateMailOptions, ImageObject };
+export { TemplateMailOptions, UserOnlineStatus, ImageObject };

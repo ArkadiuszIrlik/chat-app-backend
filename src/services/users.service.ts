@@ -2,6 +2,7 @@ import User, { IUser } from '@models/User.js';
 import { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
 import * as patchService from '@services/patch.service.js';
+import { UserOnlineStatus } from '@src/typesModule.js';
 
 async function _getUserFromParam(userParam: HydratedDocument<IUser> | string) {
   if (typeof userParam === 'string') {
@@ -79,9 +80,79 @@ async function patchUser(
 
   return patchedUser;
 }
+enum UserAuthLevel {
+  Self = 'SELF',
+  OtherUser = 'OTHER_USER',
+}
+
+export interface ClientSafeIUser {
+  _id: mongoose.Types.ObjectId;
+  email?: string;
+  username: string;
+  profileImg: string;
+  prefersOnlineStatus?: UserOnlineStatus;
+  serversIn?: mongoose.Types.ObjectId[];
+  chatsIn?: {
+    userId: mongoose.Types.ObjectId;
+    chatId: mongoose.Types.ObjectId;
+  }[];
+  friends?: mongoose.Types.ObjectId[];
+  refreshTokens?: { token: string; expDate: Date }[];
+}
+
+/** Returns plain object subset of the provided user document
+ * with resolved getters. The subset of properties returned is
+ * determined by the provided authLevel.
+ *
+ * @param user User document to subset
+ * @param authLevel authorization level, determines which properties
+ * of the User doc are considered safe to return
+ * @returns plain object with resolved getters
+ */
+function getClientSafeSubset(
+  user: HydratedDocument<IUser>,
+  authLevel: UserAuthLevel,
+): ClientSafeIUser {
+  let safeProperties: (keyof ClientSafeIUser)[] = [];
+  switch (authLevel) {
+    case UserAuthLevel.Self:
+      {
+        safeProperties = [
+          '_id',
+          'email',
+          'username',
+          'profileImg',
+          'prefersOnlineStatus',
+          'serversIn',
+          'chatsIn',
+          'friends',
+        ];
+      }
+      break;
+    case UserAuthLevel.OtherUser:
+      {
+        safeProperties = ['username', 'profileImg'];
+      }
+      break;
+    default: {
+      safeProperties = ['username', 'profileImg'];
+    }
+  }
+
+  const plainObjectUser = user.toObject({ getters: true });
+
+  // type assertion is necessary since mongoose disregards
+  // getter return types
+  return (({ ...safeProperties }) => ({ ...safeProperties }))(
+    plainObjectUser as unknown as ClientSafeIUser,
+  );
+}
+
 export {
   getUser,
   addServerAsMember,
   checkIfIsInServer,
   patchUser,
+  UserAuthLevel,
+  getClientSafeSubset,
 };
