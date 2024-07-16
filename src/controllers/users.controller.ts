@@ -18,6 +18,12 @@ export async function getUserFromAuth(req: Request, res: Response) {
   if (!user) {
     return res.status(404).json({ message: 'User not found' });
   }
+
+  return res
+    .status(200)
+    .json(
+      usersService.getClientSafeSubset(user, usersService.UserAuthLevel.Self),
+    );
 }
 
 export async function updateUser(
