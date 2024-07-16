@@ -30,8 +30,8 @@ async function saveUserProfileImage(imageBuffer: fileUpload.UploadedFile) {
   return _saveImageAsset(imageBuffer, USER_IMAGES_PATH);
 }
 
-function removeImage(pathname: string) {
-  return filesService.removeFile(`./assets/${pathname}`);
+function removeImage(imageObject: ImageObject) {
+  return filesService.removeFile(path.join('./assets/', imageObject.pathname));
 }
 
 export { saveServerImage, saveUserProfileImage, removeImage };

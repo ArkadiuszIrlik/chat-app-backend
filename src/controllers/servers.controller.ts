@@ -212,7 +212,7 @@ export async function updateServer(
     await serversService.patchServer(server, patch);
   } catch (err) {
     if (isServerImgUpdate && serverImgObj) {
-      await imagesService.removeImage(serverImgObj.pathname);
+      await imagesService.removeImage(serverImgObj);
     }
     return next(err);
   }
