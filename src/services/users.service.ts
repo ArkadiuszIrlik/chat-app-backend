@@ -71,14 +71,10 @@ async function patchUser(
 ) {
   const userToPatch = await _getUserFromParam(user);
   const patchableUser = patchService.getPatchableUser(userToPatch);
-  const patchedServer = patchService.patchDoc(
-    userToPatch,
-    patchableUser,
-    patch,
-  );
+  const patchedUser = patchService.patchDoc(userToPatch, patchableUser, patch);
 
   if (saveDocument) {
-    await patchedServer.save();
+    await patchedUser.save();
   }
 }
 export {
