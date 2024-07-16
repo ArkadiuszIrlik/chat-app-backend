@@ -6,4 +6,10 @@ interface TemplateMailOptions extends Mail.Options {
   text_template?: string;
 }
 
-export { TemplateMailOptions };
+interface ImageObject {
+  pathname: string;
+  name: string;
+  ext: string;
+}
+
+export { TemplateMailOptions, ImageObject };
