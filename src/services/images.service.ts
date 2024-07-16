@@ -1,3 +1,4 @@
+import path from 'path';
 import { SERVER_IMAGES_PATH, USER_IMAGES_PATH } from '@config/data.config.js';
 import { ImageObject } from '@src/typesModule.js';
 import fileUpload from 'express-fileupload';
@@ -9,7 +10,7 @@ async function _saveImageAsset(
 ) {
   const imgFileExt = imageBuffer.mimetype.split('/')[1];
   const nextImgObj: ImageObject = {
-    pathname: `${pathname}${imageBuffer.md5}.${imgFileExt}`,
+    pathname: path.join(pathname, `${imageBuffer.md5}.${imgFileExt}`),
     name: imageBuffer.md5,
     ext: imgFileExt,
   };
