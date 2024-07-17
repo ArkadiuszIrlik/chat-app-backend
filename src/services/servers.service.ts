@@ -345,6 +345,38 @@ async function patchChannel(
 
   return serverToPatch;
 }
+
+async function deleteChannel(
+  server: HydratedDocument<IServer> | string,
+  channelId: string,
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const serverToModify = await _getServerFromParam(server);
+
+  const parentCategory = serverToModify.channelCategories.find(
+    (category) =>
+      !!category.channels.find((channel) => channel._id.equals(channelId)),
+  );
+  if (!parentCategory) {
+    throw Error('Channel not found');
+  }
+
+  const indexToDelete = parentCategory.channels.findIndex((channel) =>
+    channel._id.equals(channelId),
+  );
+
+  if (indexToDelete === -1) {
+    throw Error('Channel not found');
+  }
+
+  parentCategory.channels.splice(indexToDelete, 1);
+
+  if (saveDocument) {
+    await serverToModify.save();
+  }
+
+  return serverToModify;
+}
 }
 
 export {
@@ -363,4 +395,5 @@ export {
   patchChannelCategory,
   deleteChannelCategory,
   patchChannel,
+  deleteChannel,
 };
