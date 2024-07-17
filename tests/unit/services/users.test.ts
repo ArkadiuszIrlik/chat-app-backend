@@ -2,27 +2,29 @@ import {
   addServerAsMember,
   checkIfIsInServer,
   getUser,
+  getClientSafeSubset,
+  UserAuthLevel,
+  patchUser,
 } from '@services/users.service.js';
 import mongoose from 'mongoose';
+import { getUserDocFixture } from '@tests/fixtures/data/dbDocs.js';
+import * as patchService from '@services/patch.service.js';
 
 jest.mock('@models/User.js', () => ({
   findById: jest.fn(() => ({
     exec: jest.fn(),
   })),
 }));
-import User, { IUser } from '@models/User.js';
-import { getUserFixture } from '@tests/fixtures/data/dbDocs.js';
-import { HydratedDocument } from 'mongoose';
+import User from '@models/User.js';
 
 afterEach(() => {
   jest.clearAllMocks();
 });
 
 describe('getUser', () => {
-  it('gets user from DB', async () => {
-    const mockUser = getUserFixture() as HydratedDocument<IUser>;
-    mockUser._id = new mongoose.Types.ObjectId();
+  const mockUser = getUserDocFixture();
 
+  it('gets user from DB', async () => {
     (User.findById as jest.Mock).mockReturnValueOnce({
       exec: jest.fn().mockResolvedValue(mockUser),
     });
@@ -33,11 +35,6 @@ describe('getUser', () => {
   });
 
   it("doesn't populate serversIn property if not explicitly specified", async () => {
-    const mockUser = {
-      _id: 'test-id',
-      name: 'test server',
-      populate: jest.fn(),
-    };
     (User.findById as jest.Mock).mockReturnValueOnce({
       exec: jest.fn().mockResolvedValue(mockUser),
     });
@@ -49,11 +46,6 @@ describe('getUser', () => {
   });
 
   it('populates serversIn property when explicitly specified', async () => {
-    const mockUser = {
-      _id: 'test-id',
-      name: 'test server',
-      populate: jest.fn(),
-    };
     (User.findById as jest.Mock).mockReturnValueOnce({
       exec: jest.fn().mockResolvedValue(mockUser),
     });
@@ -68,9 +60,9 @@ describe('getUser', () => {
 });
 
 describe('addServerAsMember', () => {
+  const mockUser = getUserDocFixture();
+
   it("adds provided serverId to user's serversIn array", async () => {
-    const mockUser = getUserFixture() as HydratedDocument<IUser>;
-    mockUser.save = jest.fn();
     const serverId = new mongoose.Types.ObjectId();
     const returnedUser = await addServerAsMember(mockUser, serverId);
 
@@ -84,13 +76,13 @@ describe('addServerAsMember', () => {
 describe('checkIfIsInServer', () => {
   it("returns true if serverId is in user's serversIn array", async () => {
     const serverId = new mongoose.Types.ObjectId();
-    const mockUser = getUserFixture({
+    const mockUser = getUserDocFixture({
       serversIn: [
         new mongoose.Types.ObjectId(),
         serverId,
         new mongoose.Types.ObjectId(),
       ],
-    }) as HydratedDocument<IUser>;
+    });
 
     const returnedValue = await checkIfIsInServer(
       mockUser,
@@ -101,7 +93,7 @@ describe('checkIfIsInServer', () => {
 
   it("returns false if serverId is not in user's serversIn array", async () => {
     const serverId = new mongoose.Types.ObjectId();
-    const mockUser = getUserFixture() as HydratedDocument<IUser>;
+    const mockUser = getUserDocFixture();
 
     const returnedValue = await checkIfIsInServer(
       mockUser,
