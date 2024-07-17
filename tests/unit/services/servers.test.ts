@@ -4,13 +4,23 @@ import {
   createInvite,
   checkIfUserIsMember,
   addMember,
+  createChannelCategory,
+  createChannel,
+  createChannelAndCategory,
+  deleteServer,
 } from '@services/servers.service.js';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { getServerFixture } from '@tests/fixtures/data/dbDocs.js';
+import {
+  getServerDocFixture,
+  getServerFixture,
+} from '@tests/fixtures/data/dbDocs.js';
 
 jest.mock('@models/Server.js', () => ({
   findById: jest.fn(),
   create: jest.fn(),
+  deleteOne: jest.fn(() => ({
+    exec: jest.fn(),
+  })),
 }));
 import Server, { IServer } from '@models/Server.js';
 
@@ -165,5 +175,104 @@ describe('addMember', () => {
       id.equals(userId),
     );
     expect(isUserInReturnedServer).toBe(true);
+  });
+});
+
+describe('createChannelCategory', () => {
+  const mockServerDoc = getServerDocFixture();
+
+  it('creates a new category in the provided Server doc', async () => {
+    const mockCategoryName = 'newly added channel category';
+    const initialCategoriesLength = mockServerDoc.channelCategories.length;
+    const returnedDoc = await createChannelCategory(
+      mockServerDoc,
+      mockCategoryName,
+    );
+
+    const lastCategoryIndex = returnedDoc.channelCategories.length - 1;
+    expect(returnedDoc.channelCategories.length).toBe(
+      initialCategoriesLength + 1,
+    );
+    expect(returnedDoc.channelCategories[lastCategoryIndex].name).toBe(
+      mockCategoryName,
+    );
+  });
+});
+
+describe('createChannel', () => {
+  let mockServerDoc = getServerDocFixture();
+  afterEach(() => {
+    mockServerDoc = getServerDocFixture();
+  });
+
+  it('creates a new channel', async () => {
+    const mockChannelName = 'newly added test mock channel';
+    const categoryId = mockServerDoc.channelCategories[1]._id;
+
+    const returnedDoc = await createChannel(
+      mockServerDoc,
+      mockChannelName,
+      categoryId.toString(),
+    );
+
+    const lastChannelIndex =
+      returnedDoc.channelCategories[1].channels.length - 1;
+    expect(
+      returnedDoc.channelCategories[1].channels[lastChannelIndex].name,
+    ).toBe(mockChannelName);
+  });
+
+  it('throws "Category not found" when passed invalid categoryId', async () => {
+    const mockChannelName = 'newly added test mock channel';
+    const categoryId = 'invalid id value';
+
+    await expect(
+      createChannel(mockServerDoc, mockChannelName, categoryId),
+    ).rejects.toThrow('Category not found');
+  });
+});
+
+describe('createChannelAndCategory', () => {
+  let mockServerDoc = getServerDocFixture();
+  afterEach(() => {
+    mockServerDoc = getServerDocFixture();
+  });
+
+  it('creates new channel category with a new channel', async () => {
+    const mockChannelName = 'mock channel name to add';
+    const mockCategoryName = 'mock category name to add';
+    const lastCategoryIndex = mockServerDoc.channelCategories.length - 1;
+
+    const returnedDoc = await createChannelAndCategory(
+      mockServerDoc,
+      mockChannelName,
+      mockCategoryName,
+    );
+
+    const newCategory = returnedDoc.channelCategories[lastCategoryIndex + 1];
+    expect(newCategory.name).toBe(mockCategoryName);
+    expect(newCategory.channels[0].name).toBe(mockChannelName);
+  });
+
+  it("doesn't unnecessarily save document when calling createChannel", async () => {
+    await createChannelAndCategory(
+      mockServerDoc,
+      'mock channel',
+      'mock category',
+    );
+    expect(mockServerDoc.save).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('deleteServer', () => {
+  it('calls deleteOne on the Server model', () => {
+    const mockServerId = new mongoose.Types.ObjectId();
+
+    deleteServer(mockServerId.toString());
+
+    expect(Server.deleteOne).toHaveBeenCalled();
+    expect(Server.deleteOne).toHaveBeenCalledWith(
+      expect.objectContaining({ _id: mockServerId.toString() }),
+    );
   });
 });
