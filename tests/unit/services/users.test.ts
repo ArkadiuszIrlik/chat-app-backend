@@ -102,3 +102,77 @@ describe('checkIfIsInServer', () => {
     expect(returnedValue).toBe(false);
   });
 });
+
+describe('patchUser', () => {
+  const mockUserDoc = getUserDocFixture();
+  const patchSpy = jest
+    .spyOn(patchService, 'patchDoc')
+    // @ts-ignore
+    .mockImplementation(() => undefined);
+
+  it('calls patchDoc with provided user doc and patch', async () => {
+    const mockPatch = [
+      { op: 'replace', path: '/username', value: 'Changed Username' },
+    ];
+
+    await patchUser(mockUserDoc, mockPatch);
+
+    expect(patchSpy.mock.calls[0][0]).toBe(mockUserDoc);
+    expect(patchSpy.mock.calls[0][2]).toBe(mockPatch);
+  });
+
+  it("saves the updated user by default when saveDocument option isn't defined", async () => {
+    const mockPatch = [
+      { op: 'replace', path: '/username', value: 'Changed Username' },
+    ];
+
+    await patchUser(mockUserDoc, mockPatch);
+
+    expect(mockUserDoc.save).toHaveBeenCalled();
+  });
+
+  it('returns the updated doc', async () => {
+    const mockPatch = [
+      { op: 'replace', path: '/username', value: 'Changed Username' },
+    ];
+
+    const returnedDoc = await patchUser(mockUserDoc, mockPatch);
+
+    expect(returnedDoc).toBe(mockUserDoc);
+  });
+});
+
+describe('getClientSafeSubset', () => {
+  const mockUserDoc = getUserDocFixture();
+
+  it('returns the User doc with resolved getters', () => {
+    const returnedObject = getClientSafeSubset(mockUserDoc, UserAuthLevel.Self);
+    expect(typeof mockUserDoc.profileImg).toBe('object');
+    expect(typeof returnedObject.profileImg).toBe('string');
+  });
+
+  it(`returns object with following properties for "Self" authLevel: _id,
+    email, username, profileImg, prefersOnlineStatus, serversIn, chatsIn,
+    friends`, () => {
+    const returnedObject = getClientSafeSubset(mockUserDoc, UserAuthLevel.Self);
+    expect(Object.keys(returnedObject)).toEqual([
+      '_id',
+      'email',
+      'username',
+      'profileImg',
+      'prefersOnlineStatus',
+      'serversIn',
+      'chatsIn',
+      'friends',
+    ]);
+  });
+
+  it(`returns object with following properties for "OtherUser" authLevel:
+    username, profileImg`, () => {
+    const returnedObject = getClientSafeSubset(
+      mockUserDoc,
+      UserAuthLevel.OtherUser,
+    );
+    expect(Object.keys(returnedObject)).toEqual(['username', 'profileImg']);
+  });
+});
