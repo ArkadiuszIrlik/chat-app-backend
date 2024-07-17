@@ -276,6 +276,29 @@ async function patchChannelCategory(
     await patchedServer.save();
   }
 }
+
+async function deleteChannelCategory(
+  server: HydratedDocument<IServer> | string,
+  categoryId: string,
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const serverToModify = await _getServerFromParam(server);
+
+  const indexToDelete = serverToModify.channelCategories.findIndex((category) =>
+    category._id.equals(categoryId),
+  );
+  if (indexToDelete === -1) {
+    throw Error('Channel category not found');
+  }
+
+  serverToModify.channelCategories.splice(indexToDelete, 1);
+
+  if (saveDocument) {
+    await serverToModify.save();
+  }
+
+  return serverToModify;
+}
 }
 
 export {
@@ -292,4 +315,5 @@ export {
   deleteServer,
   patchServer,
   patchChannelCategory,
+  deleteChannelCategory,
 };
