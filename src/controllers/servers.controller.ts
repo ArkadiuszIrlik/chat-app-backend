@@ -220,3 +220,31 @@ export async function updateServer(
 
   return res.status(200).json({ message: 'Server updated' });
 }
+
+export async function updateChannelCategory(req: Request, res: Response) {
+  const serverId = req.params.serverId;
+  const categoryId = req.params.categoryId;
+
+  const server =
+    req.context.requestedServer ?? (await serversService.getServer(serverId));
+  if (!server) {
+    return res.status(404).json({ message: 'Server not found' });
+  }
+
+  // type tested by validation middleware
+  const tempPatch = req.files?.patch as fileUpload.UploadedFile;
+
+  const patchBuffer = await uploadedFilesService.readTempFile(tempPatch);
+  uploadedFilesService.removeTempFile(tempPatch);
+
+  const patch = JSON.parse(patchBuffer.toString());
+  if (!Array.isArray(patch)) {
+    return res.status(404).json({ message: 'Invalid PATCH data' });
+  }
+
+  await serversService.patchChannelCategory(server, categoryId, patch);
+  socketService.emitServerUpdated(req.socketIo, server);
+
+  return res.status(200).json({ message: 'Channel group updated' });
+}
+
