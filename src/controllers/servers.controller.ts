@@ -264,3 +264,29 @@ export async function deleteChannelCategory(req: Request, res: Response) {
   return res.status(200).json({ message: 'Channel group deleted' });
 }
 
+export async function updateChannel(req: Request, res: Response) {
+  const serverId = req.params.serverId;
+  const channelId = req.params.channelId;
+
+  // type tested by validation middleware
+  const tempPatch = req.files?.patch as fileUpload.UploadedFile;
+
+  const patchBuffer = await uploadedFilesService.readTempFile(tempPatch);
+  uploadedFilesService.removeTempFile(tempPatch);
+
+  const patch = JSON.parse(patchBuffer.toString());
+  if (!Array.isArray(patch)) {
+    return res.status(404).json({ message: 'Invalid PATCH data' });
+  }
+
+  const server =
+    req.context.requestedServer ?? (await serversService.getServer(serverId));
+  if (!server) {
+    return res.status(404).json({ message: 'Server not found' });
+  }
+
+  await serversService.patchChannel(server, channelId, patch);
+  socketService.emitServerUpdated(req.socketIo, server);
+
+  return res.status(200).json({ message: 'Channel updated' });
+}
