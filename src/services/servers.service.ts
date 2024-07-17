@@ -5,6 +5,7 @@ import ServerInvite, { IServerInvite } from '@models/ServerInvite.js';
 import mongoose, { HydratedDocument } from 'mongoose';
 import ShortUniqueId from 'short-unique-id';
 import * as patchService from '@services/patch.service.js';
+import { getChannelsFromCategories } from '@helpers/servers.helpers.js';
 
 function _populateServerMembers(server: HydratedDocument<IServer>) {
   return server.populate({
@@ -299,6 +300,51 @@ async function deleteChannelCategory(
 
   return serverToModify;
 }
+
+async function patchChannel(
+  server: HydratedDocument<IServer> | string,
+  channelId: string,
+  patch: string | any[],
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const serverToPatch = await _getServerFromParam(server);
+
+  const channelToPatch = getChannelsFromCategories(
+    serverToPatch.channelCategories,
+  ).find((channel) => channel._id.equals(channelId));
+  if (!channelToPatch) {
+    throw Error('Channel not found');
+  }
+
+  const patchableChannel = patchService.getPatchableChannel(channelToPatch);
+  let pathToChannel: string | null = null;
+  for (
+    let categoryIndex = 0;
+    categoryIndex < serverToPatch.channelCategories.length;
+    categoryIndex++
+  ) {
+    const category = serverToPatch.channelCategories[categoryIndex];
+    const channelIndex = category.channels.findIndex((channel) =>
+      channel._id.equals(channelId),
+    );
+    if (channelIndex === -1) {
+      continue;
+    } else {
+      pathToChannel = `channelCategories.${categoryIndex}.channels.${channelIndex}`;
+      break;
+    }
+  }
+  if (pathToChannel === null) {
+    throw Error('Channel not found');
+  }
+  patchService.patchDoc(serverToPatch, patchableChannel, patch, pathToChannel);
+
+  if (saveDocument) {
+    await serverToPatch.save();
+  }
+
+  return serverToPatch;
+}
 }
 
 export {
@@ -316,4 +362,5 @@ export {
   patchServer,
   patchChannelCategory,
   deleteChannelCategory,
+  patchChannel,
 };
