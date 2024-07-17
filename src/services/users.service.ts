@@ -143,9 +143,11 @@ function getClientSafeSubset(
 
   // type assertion is necessary since mongoose disregards
   // getter return types
-  return (({ ...safeProperties }) => ({ ...safeProperties }))(
-    plainObjectUser as unknown as ClientSafeIUser,
-  );
+  const clientSubset = Object.fromEntries(
+    safeProperties.map((key) => [key, plainObjectUser[key]]),
+  ) as unknown as ClientSafeIUser;
+
+  return clientSubset;
 }
 
 export {
