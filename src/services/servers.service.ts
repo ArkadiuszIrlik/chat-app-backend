@@ -244,6 +244,38 @@ async function patchServer(
 
   return patchedServer;
 }
+
+async function patchChannelCategory(
+  server: HydratedDocument<IServer> | string,
+  categoryId: string,
+  patch: string | any[],
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const serverToPatch = await _getServerFromParam(server);
+  const categoryToPatch = serverToPatch.channelCategories.find((category) =>
+    category._id.equals(categoryId),
+  );
+  if (!categoryToPatch) {
+    throw Error('Channel category not found');
+  }
+  const categoryIndex = serverToPatch.channelCategories.findIndex((category) =>
+    category._id.equals(categoryId),
+  );
+  const pathToCategory = `channelCategories.${categoryIndex}`;
+  const patchableCategory =
+    patchService.getPatchableChannelCategory(categoryToPatch);
+
+  const patchedServer = patchService.patchDoc(
+    serverToPatch,
+    patchableCategory,
+    patch,
+    pathToCategory,
+  );
+
+  if (saveDocument) {
+    await patchedServer.save();
+  }
+}
 }
 
 export {
@@ -259,4 +291,5 @@ export {
   createChannelAndCategory,
   deleteServer,
   patchServer,
+  patchChannelCategory,
 };
