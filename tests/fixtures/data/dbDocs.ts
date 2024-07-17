@@ -1,4 +1,4 @@
-import { USER_IMAGES_PATH } from '@config/data.config.js';
+import { SERVER_IMAGES_PATH, USER_IMAGES_PATH } from '@config/data.config.js';
 import { IServer } from '@models/Server.js';
 import { IUser } from '@models/User.js';
 import { UserOnlineStatus } from '@src/typesModule.js';
@@ -11,6 +11,116 @@ function getServerFixture(dataOverride: Partial<IServer> = {}): IServer {
     name: 'Test Server',
     serverImg: {
       pathname: 'images/server/test-server-img.jpg',
+      name: 'test-server-img.jpg',
+      ext: 'jpg',
+      get: () => './tests/fixtures/assets/images/server/test-server-img.jpg',
+    },
+    ownerId: new mongoose.Types.ObjectId(),
+    members: [
+      new mongoose.Types.ObjectId(),
+      new mongoose.Types.ObjectId(),
+      new mongoose.Types.ObjectId(),
+    ],
+    channelCategories: [
+      {
+        _id: new mongoose.Types.ObjectId(),
+        name: 'Test Category 1',
+        channels: [
+          {
+            _id: new mongoose.Types.ObjectId(),
+            name: 'Test Channel 1',
+            type: 'text',
+            socketId: new mongoose.Types.ObjectId(),
+          },
+          {
+            _id: new mongoose.Types.ObjectId(),
+            name: 'Test Channel 2',
+            type: 'text',
+            socketId: new mongoose.Types.ObjectId(),
+          },
+        ],
+      },
+      {
+        _id: new mongoose.Types.ObjectId(),
+        name: 'Test Category 2',
+        channels: [
+          {
+            _id: new mongoose.Types.ObjectId(),
+            name: 'Test Channel 3',
+            type: 'text',
+            socketId: new mongoose.Types.ObjectId(),
+          },
+          {
+            _id: new mongoose.Types.ObjectId(),
+            name: 'Test Channel 4',
+            type: 'text',
+            socketId: new mongoose.Types.ObjectId(),
+          },
+        ],
+      },
+    ],
+    socketId: new mongoose.Types.ObjectId(),
+  };
+
+  return { ...serverFixture, ...dataOverride };
+}
+
+/** Returns a mock Server document with mongoose functions replaced
+ * with jest mocks.
+ *
+ * @param dataOverride object with replacement values for any of the
+ * properties, both the document values and the mongoose functions
+ */
+function getServerDocFixture(
+  dataOverride: Partial<HydratedDocument<IServer>> = {},
+): HydratedDocument<IServer> {
+  const baseDocProperties = getServerValuesFixture();
+  const mongooseProperties = {
+    _id: new mongoose.Types.ObjectId(),
+    save: jest.fn(),
+    populate: jest.fn(),
+  };
+
+  const objectWithOverrides = {
+    ...baseDocProperties,
+    ...mongooseProperties,
+    ...dataOverride,
+  };
+
+  function toObject() {
+    const baseWithOverrides = Object.fromEntries(
+      (
+        Object.keys(baseDocProperties) as (keyof typeof baseDocProperties)[]
+      ).map((key) => [key, objectWithOverrides[key]]),
+    );
+    return {
+      ...baseWithOverrides,
+      serverImg: baseDocProperties.serverImg.get(),
+      _id: objectWithOverrides._id,
+      id: objectWithOverrides._id.toString(),
+    };
+  }
+
+  return {
+    ...baseDocProperties,
+    ...mongooseProperties,
+    ...dataOverride,
+    toObject: dataOverride.toObject ?? toObject,
+  } as HydratedDocument<IServer>;
+}
+
+/** Returns an object with mock values, implementing the Server
+ * schema. Can be passed into the Server model constructor to
+ * create a Server document.
+ * @param dataOverride object with replacement values for any of the
+ * properties
+ */
+function getServerValuesFixture(dataOverride: Partial<IServer> = {}): IServer {
+  const serverFixture: IServer = {
+    //   _id: new mongoose.Types.ObjectId(),
+    name: 'Test Server',
+    serverImg: {
+      pathname: path.join(SERVER_IMAGES_PATH, `test-server-img.jpg`),
       name: 'test-server-img.jpg',
       ext: 'jpg',
       get: () => './tests/fixtures/assets/images/server/test-server-img.jpg',
@@ -161,6 +271,8 @@ function getUserValuesFixture(dataOverride: Partial<IUser> = {}): IUser {
 
 export {
   getServerFixture,
+  getServerDocFixture,
+  getServerValuesFixture,
   getUserFixture,
   getUserDocFixture,
   getUserValuesFixture,
