@@ -290,3 +290,19 @@ export async function updateChannel(req: Request, res: Response) {
 
   return res.status(200).json({ message: 'Channel updated' });
 }
+
+export async function deleteChannel(req: Request, res: Response) {
+  const serverId = req.params.serverId;
+  const channelId = req.params.channelId;
+
+  const server =
+    req.context.requestedServer ?? (await serversService.getServer(serverId));
+  if (!server) {
+    return res.status(404).json({ message: 'Server not found' });
+  }
+
+  await serversService.deleteChannel(server, channelId);
+  socketService.emitServerUpdated(req.socketIo, server);
+
+  return res.status(200).json({ message: 'Channel deleted' });
+}
