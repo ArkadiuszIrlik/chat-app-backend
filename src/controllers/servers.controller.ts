@@ -306,3 +306,54 @@ export async function deleteChannel(req: Request, res: Response) {
 
   return res.status(200).json({ message: 'Channel deleted' });
 }
+
+export async function removeUser(req: Request, res: Response) {
+  const serverId = req.params.serverId;
+  const userId = req.params.userId;
+
+  const server =
+    req.context.requestedServer ?? (await serversService.getServer(serverId));
+  if (!server) {
+    return res.status(404).json({ message: 'Server not found' });
+  }
+
+  const userToDelete = await usersService.getUser(userId);
+  const isUserMember = await serversService.checkIfUserIsMember(server, userId);
+  if (!userToDelete && !isUserMember) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  await serversService.removeMember(server, userId);
+
+  if (userToDelete) {
+    await usersService.leaveServer(userToDelete, serverId);
+  }
+
+  const channelSockets = await serversService.getChannelSocketIds(server);
+  const serverSocket = await serversService.getServerSocketId(server);
+  const userSockets = await socketService.getConnectedUserSocketIds(
+    req.socketIo,
+    userId,
+  );
+
+  socketService.disconnectSocketsFromRooms(req.socketIo, userSockets, [
+    ...channelSockets,
+    serverSocket,
+  ]);
+
+  if (userToDelete) {
+    const clientSafeUser = usersService.getClientSafeSubset(
+      userToDelete,
+      usersService.UserAuthLevel.OtherUser,
+    );
+
+    socketService.emitUserLeftServer(
+      req.socketIo,
+      [serverSocket, ...userSockets],
+      clientSafeUser,
+      serverId,
+    );
+  }
+
+  return res.status(200).json({ message: 'User removed' });
+}
