@@ -43,8 +43,8 @@ function getPatchableChannel(channel: IChannel) {
  * in case you want to patch a nested object
  * @returns mutated version of the targetDoc with the patch applied
  */
-function patchDoc(
-  targetDoc: HydratedDocument<Record<string, any>>,
+function patchDoc<ISchema>(
+  targetDoc: HydratedDocument<ISchema>,
   patchableSubset: Record<string, any>,
   patch: string | any[],
   pathToPatch?: string,
