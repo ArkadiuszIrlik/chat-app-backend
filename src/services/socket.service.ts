@@ -43,6 +43,14 @@ function disconnectAllFromServer(
 ) {
   socketIo.socketsLeave(server.socketId.toString());
 }
+function disconnectSocketsFromRooms(
+  socketIo: SocketServer,
+  socketIds: string[],
+  roomIds: string[],
+) {
+  socketIo.in(socketIds).socketsLeave(roomIds);
+}
+
 async function getConnectedUserSocketIds(
   socketIo: SocketServer,
   userId: string,
@@ -90,6 +98,7 @@ export {
   emitServerDeleted,
   disconnectAllFromServer,
   getConnectedUserSocketIds,
+  disconnectSocketsFromRooms,
   getConnectedUserSockets,
   getRoomsUserIsIn,
   emitUserUpdated,
