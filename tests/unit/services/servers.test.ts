@@ -11,6 +11,8 @@ import {
   patchServer,
   patchChannelCategory,
   deleteChannelCategory,
+  patchChannel,
+  deleteChannel,
 } from '@services/servers.service.js';
 import mongoose, { HydratedDocument } from 'mongoose';
 import {
@@ -434,6 +436,121 @@ describe('deleteChannelCategory', () => {
     const returnedDoc = await deleteChannelCategory(
       mockServerDoc,
       mockCategoryId.toString(),
+    );
+
+    expect(returnedDoc).toBe(mockServerDoc);
+  });
+});
+
+describe('patchChannel', () => {
+  let mockServerDoc = getServerDocFixture();
+  const mockPatch = [
+    { op: 'replace', path: '/name', value: 'Changed channel name' },
+  ];
+
+  let patchSpy = jest.spyOn(patchService, 'patchDoc');
+
+  beforeEach(() => {
+    patchSpy = jest.spyOn(patchService, 'patchDoc');
+    patchSpy.mockImplementationOnce((targetDoc) => targetDoc);
+  });
+
+  afterEach(() => {
+    patchSpy.mockRestore();
+    mockServerDoc = getServerDocFixture();
+  });
+
+  it('calls patchDoc with the correct arguments', async () => {
+    const mockChannelId = mockServerDoc.channelCategories[1].channels[0]._id;
+    const pathToPatchedChannel = 'channelCategories.1.channels.0';
+
+    await patchChannel(mockServerDoc, mockChannelId.toString(), mockPatch);
+
+    expect(patchSpy.mock.calls[0]).toEqual([
+      mockServerDoc,
+      expect.objectContaining({}),
+      mockPatch,
+      pathToPatchedChannel,
+    ]);
+  });
+
+  it('throws "Channel not found" when passed invalid channelId', async () => {
+    const mockChannelId = 'invalid category id';
+    await expect(
+      patchChannel(mockServerDoc, mockChannelId, mockPatch),
+    ).rejects.toThrow('Channel not found');
+  });
+
+  it("saves the updated server by default when saveDocument option isn't defined", async () => {
+    const mockChannelId = mockServerDoc.channelCategories[1].channels[0]._id;
+
+    await patchChannel(mockServerDoc, mockChannelId.toString(), mockPatch);
+
+    expect(mockServerDoc.save).toHaveBeenCalled();
+  });
+
+  it('returns the mutated doc', async () => {
+    const mockChannelId = mockServerDoc.channelCategories[1].channels[0]._id;
+
+    const returnedDoc = await patchChannel(
+      mockServerDoc,
+      mockChannelId.toString(),
+      mockPatch,
+    );
+
+    expect(returnedDoc).toBe(mockServerDoc);
+  });
+});
+
+describe('deleteChannel', () => {
+  let mockServerDoc = getServerDocFixture();
+
+  beforeEach(() => {
+    mockServerDoc = getServerDocFixture();
+  });
+
+  it('removes the channel from the Server doc', async () => {
+    const mockChannelId = mockServerDoc.channelCategories[1].channels[0]._id;
+    const initialChannelsLength =
+      mockServerDoc.channelCategories[1].channels.length;
+
+    const returnedDoc = await deleteChannel(
+      mockServerDoc,
+      mockChannelId.toString(),
+    );
+
+    expect(returnedDoc.channelCategories[1].channels.length).toBe(
+      initialChannelsLength - 1,
+    );
+    expect(returnedDoc.channelCategories[1].channels).not.toContainEqual(
+      expect.objectContaining({
+        _id: mockChannelId,
+      }),
+    );
+  });
+
+  it('throws "Channel not found" when passed an invalid channelId', async () => {
+    const mockChannelId = 'invalid category id';
+
+    await expect(deleteChannel(mockServerDoc, mockChannelId)).rejects.toThrow(
+      'Channel not found',
+    );
+  });
+
+  it("saves the updated server by default when saveDocument option isn't defined", async () => {
+    const mockChannelId = mockServerDoc.channelCategories[1].channels[0]._id;
+
+    await deleteChannel(mockServerDoc, mockChannelId.toString());
+
+    expect(mockServerDoc.save).toHaveBeenCalled();
+  });
+
+  it('returns the mutated doc', async () => {
+    const mockChannelId = mockServerDoc.channelCategories[1].channels[0]._id;
+
+    const returnedDoc = await deleteChannel(
+      mockServerDoc,
+      mockChannelId.toString(),
     );
 
     expect(returnedDoc).toBe(mockServerDoc);
