@@ -379,6 +379,24 @@ async function deleteChannel(
 
   return serverToModify;
 }
+
+async function removeMember(
+  server: HydratedDocument<IServer> | string,
+  memberId: string,
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const serverToModify = await _getServerFromParam(server);
+
+  serverToModify.members = serverToModify.members.filter(
+    (id) => !id.equals(memberId),
+  );
+
+  if (saveDocument) {
+    await serverToModify.save();
+  }
+
+  return serverToModify;
+}
 }
 
 export {
@@ -398,4 +416,5 @@ export {
   deleteChannelCategory,
   patchChannel,
   deleteChannel,
+  removeMember,
 };
