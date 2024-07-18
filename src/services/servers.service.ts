@@ -397,6 +397,23 @@ async function removeMember(
 
   return serverToModify;
 }
+
+async function getChannelSocketIds(server: HydratedDocument<IServer> | string) {
+  const serverToCheck = await _getServerFromParam(server);
+
+  const channelSockets = getChannelsFromCategories(
+    serverToCheck.channelCategories,
+  ).map((channel) => channel.socketId.toString());
+
+  return channelSockets;
+}
+
+async function getServerSocketId(server: HydratedDocument<IServer> | string) {
+  const serverToCheck = await _getServerFromParam(server);
+
+  const serverSocket = serverToCheck.socketId.toString();
+
+  return serverSocket;
 }
 
 export {
@@ -417,4 +434,6 @@ export {
   patchChannel,
   deleteChannel,
   removeMember,
+  getChannelSocketIds,
+  getServerSocketId,
 };
