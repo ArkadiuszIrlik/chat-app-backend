@@ -276,6 +276,8 @@ async function patchChannelCategory(
   if (saveDocument) {
     await patchedServer.save();
   }
+
+  return patchedServer;
 }
 
 async function deleteChannelCategory(
