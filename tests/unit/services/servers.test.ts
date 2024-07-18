@@ -13,6 +13,9 @@ import {
   deleteChannelCategory,
   patchChannel,
   deleteChannel,
+  removeMember,
+  getChannelSocketIds,
+  getServerSocketId,
 } from '@services/servers.service.js';
 import mongoose, { HydratedDocument } from 'mongoose';
 import {
@@ -554,5 +557,94 @@ describe('deleteChannel', () => {
     );
 
     expect(returnedDoc).toBe(mockServerDoc);
+  });
+});
+
+describe('removeMember', () => {
+  let mockServerDoc = getServerDocFixture();
+
+  beforeEach(() => {
+    mockServerDoc = getServerDocFixture();
+  });
+
+  it('removes provided memberId from server.members array', async () => {
+    const memberIdToRemove = new mongoose.Types.ObjectId();
+    mockServerDoc = getServerDocFixture({
+      members: [
+        new mongoose.Types.ObjectId(),
+        memberIdToRemove,
+        new mongoose.Types.ObjectId(),
+      ],
+    });
+    const initialMembersLength = mockServerDoc.members.length;
+
+    const returnedDoc = await removeMember(
+      mockServerDoc,
+      memberIdToRemove.toString(),
+    );
+
+    expect(returnedDoc.members.length).toBe(initialMembersLength - 1);
+    expect(returnedDoc.members).not.toContainEqual(memberIdToRemove);
+  });
+
+  it("saves the updated server by default when saveDocument option isn't defined", async () => {
+    const memberIdToRemove = new mongoose.Types.ObjectId();
+    mockServerDoc = getServerDocFixture({
+      members: [memberIdToRemove],
+    });
+
+    await removeMember(mockServerDoc, memberIdToRemove.toString());
+
+    expect(mockServerDoc.save).toHaveBeenCalled();
+  });
+
+  it('returns the mutated doc', async () => {
+    const memberIdToRemove = new mongoose.Types.ObjectId();
+    mockServerDoc = getServerDocFixture({
+      members: [memberIdToRemove],
+    });
+
+    const returnedDoc = await removeMember(
+      mockServerDoc,
+      memberIdToRemove.toString(),
+    );
+
+    expect(returnedDoc).toBe(mockServerDoc);
+  });
+});
+
+describe('getChannelSocketIds', () => {
+  it('gets socketIds from provided server doc', async () => {
+    const mockSocketId1 = new mongoose.Types.ObjectId();
+    const mockSocketId2 = new mongoose.Types.ObjectId();
+
+    const mockServerDoc = getServerDocFixture({
+      channelCategories: [
+        {
+          channels: [{ socketId: mockSocketId1 } as IChannel],
+        } as IChannelCategory,
+        {
+          channels: [{ socketId: mockSocketId2 } as IChannel],
+        } as IChannelCategory,
+      ],
+    });
+
+    const returnedValue = await getChannelSocketIds(mockServerDoc);
+
+    expect(returnedValue).toEqual([
+      mockSocketId1.toString(),
+      mockSocketId2.toString(),
+    ]);
+  });
+});
+
+describe('getServerSocketId', () => {
+  it('returns server.socketId as a string', async () => {
+    const mockServerDoc = getServerDocFixture();
+    const mockSocketId = mockServerDoc.socketId;
+
+    const returnedValue = await getServerSocketId(mockServerDoc);
+
+    expect(returnedValue).toBe(mockSocketId.toString());
   });
 });
