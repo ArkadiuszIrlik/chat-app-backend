@@ -71,6 +71,23 @@ async function getConnectedUserSockets(socketIo: SocketServer, userId: string) {
 
   return userSockets;
 }
+
+function emitUserLeftServer(
+  socketIo: SocketServer,
+  socketsToNotify: string[],
+  user: { _id: Types.ObjectId; username: string; profileImg: string },
+  serverId: string,
+) {
+  socketIo.to(socketsToNotify).emit(
+    SocketEvents.UserLeftServer,
+    {
+      _id: user._id,
+      username: user.username,
+      profileImg: user.profileImg,
+    },
+    serverId,
+  );
+}
 async function getRoomsUserIsIn(socketIo: SocketServer, userId: string) {
   const userSockets = await getConnectedUserSockets(socketIo, userId);
   const allRooms: string[] = [];
@@ -98,6 +115,7 @@ export {
   emitServerDeleted,
   disconnectAllFromServer,
   getConnectedUserSocketIds,
+  emitUserLeftServer,
   disconnectSocketsFromRooms,
   getConnectedUserSockets,
   getRoomsUserIsIn,
