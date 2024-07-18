@@ -80,6 +80,25 @@ async function patchUser(
 
   return patchedUser;
 }
+
+async function leaveServer(
+  user: HydratedDocument<IUser> | string,
+  serverId: string,
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const userToCheck = await _getUserFromParam(user);
+
+  userToCheck.serversIn = userToCheck.serversIn.filter(
+    (id) => !id.equals(serverId),
+  );
+
+  if (saveDocument) {
+    await userToCheck.save();
+  }
+
+  return userToCheck;
+}
+
 enum UserAuthLevel {
   Self = 'SELF',
   OtherUser = 'OTHER_USER',
@@ -155,6 +174,7 @@ export {
   addServerAsMember,
   checkIfIsInServer,
   patchUser,
+  leaveServer,
   UserAuthLevel,
   getClientSafeSubset,
 };
