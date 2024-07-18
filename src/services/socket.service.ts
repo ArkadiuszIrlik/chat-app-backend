@@ -43,6 +43,18 @@ function disconnectAllFromServer(
 ) {
   socketIo.socketsLeave(server.socketId.toString());
 }
+async function getConnectedUserSocketIds(
+  socketIo: SocketServer,
+  userId: string,
+) {
+  const sockets = await socketIo.fetchSockets();
+  const userSockets = sockets
+    .filter((socket) => socket.data.user._id.equals(userId))
+    .map((socket) => socket.id);
+
+  return userSockets;
+}
+
 async function getConnectedUserSockets(socketIo: SocketServer, userId: string) {
   const sockets = await socketIo.fetchSockets();
   const userSockets = sockets.filter((socket) =>
@@ -77,6 +89,7 @@ export {
   emitServerUpdated,
   emitServerDeleted,
   disconnectAllFromServer,
+  getConnectedUserSocketIds,
   getConnectedUserSockets,
   getRoomsUserIsIn,
   emitUserUpdated,
