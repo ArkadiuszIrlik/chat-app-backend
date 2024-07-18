@@ -107,8 +107,7 @@ describe('patchUser', () => {
   const mockUserDoc = getUserDocFixture();
   const patchSpy = jest
     .spyOn(patchService, 'patchDoc')
-    // @ts-ignore
-    .mockImplementation(() => undefined);
+    .mockImplementation((targetDoc) => targetDoc);
 
   it('calls patchDoc with provided user doc and patch', async () => {
     const mockPatch = [
@@ -131,7 +130,7 @@ describe('patchUser', () => {
     expect(mockUserDoc.save).toHaveBeenCalled();
   });
 
-  it('returns the updated doc', async () => {
+  it('returns the mutated doc', async () => {
     const mockPatch = [
       { op: 'replace', path: '/username', value: 'Changed Username' },
     ];
