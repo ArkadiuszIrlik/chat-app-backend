@@ -5,6 +5,7 @@ import {
   getClientSafeSubset,
   UserAuthLevel,
   patchUser,
+  leaveServer,
 } from '@services/users.service.js';
 import mongoose from 'mongoose';
 import { getUserDocFixture } from '@tests/fixtures/data/dbDocs.js';
@@ -173,5 +174,58 @@ describe('getClientSafeSubset', () => {
       UserAuthLevel.OtherUser,
     );
     expect(Object.keys(returnedObject)).toEqual(['username', 'profileImg']);
+  });
+});
+
+describe('leaveServer', () => {
+  let mockUserDoc = getUserDocFixture();
+
+  beforeEach(() => {
+    mockUserDoc = getUserDocFixture();
+  });
+
+  it('removes the provided serverId from user.serversIn array', async () => {
+    const serverIdToRemove = new mongoose.Types.ObjectId();
+    mockUserDoc = getUserDocFixture({
+      serversIn: [
+        new mongoose.Types.ObjectId(),
+        serverIdToRemove,
+        new mongoose.Types.ObjectId(),
+      ],
+    });
+    const initialServersInLength = mockUserDoc.serversIn.length;
+
+    const returnedDoc = await leaveServer(
+      mockUserDoc,
+      serverIdToRemove.toString(),
+    );
+
+    expect(returnedDoc.serversIn.length).toBe(initialServersInLength - 1);
+    expect(returnedDoc.serversIn).not.toContain(serverIdToRemove);
+  });
+
+  it("saves the updated user by default when saveDocument option isn't defined", async () => {
+    const serverIdToRemove = new mongoose.Types.ObjectId();
+    mockUserDoc = getUserDocFixture({
+      serversIn: [serverIdToRemove],
+    });
+
+    await leaveServer(mockUserDoc, serverIdToRemove.toString());
+
+    expect(mockUserDoc.save).toHaveBeenCalled();
+  });
+
+  it('returns the mutated doc', async () => {
+    const serverIdToRemove = new mongoose.Types.ObjectId();
+    mockUserDoc = getUserDocFixture({
+      serversIn: [serverIdToRemove],
+    });
+
+    const returnedDoc = await leaveServer(
+      mockUserDoc,
+      serverIdToRemove.toString(),
+    );
+
+    expect(returnedDoc).toBe(mockUserDoc);
   });
 });
