@@ -17,7 +17,7 @@ function getMessages(
 }
 
 function checkIfIsServerMessage(message: HydratedDocument<IChatMessage>) {
-  const isServerMessage = !!message.get('serverId');
+  const isServerMessage = !!message.serverId;
 
   return isServerMessage;
 }
