@@ -22,4 +22,8 @@ function checkIfIsServerMessage(message: HydratedDocument<IChatMessage>) {
   return isServerMessage;
 }
 
-export { getMessages, checkIfIsServerMessage };
+function getMessageServerId(message: HydratedDocument<IChatMessage>) {
+  return message.serverId;
+}
+
+export { getMessages, checkIfIsServerMessage, getMessageServerId };
