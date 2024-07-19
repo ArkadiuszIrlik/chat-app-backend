@@ -2,7 +2,7 @@ import { Request } from 'express';
 import UAParser from 'ua-parser-js';
 import requestIp from 'request-ip';
 
-function getBrowserString(parserInstance: UAParser.UAParserInstance) {
+function _getBrowserString(parserInstance: UAParser.UAParserInstance) {
   let completeString = '';
 
   let browserString = '';
@@ -35,7 +35,7 @@ function getBrowserString(parserInstance: UAParser.UAParserInstance) {
   return completeString;
 }
 
-function getLocationString(city: string, country: string) {
+function _getLocationString(city: string, country: string) {
   let locationString = '';
   if (city) {
     locationString += city;
@@ -49,7 +49,7 @@ function getLocationString(city: string, country: string) {
   return locationString;
 }
 
-async function getUserGeoData(userIp: string) {
+async function _getUserGeoData(userIp: string) {
   const userGeoData = {
     city: '',
     countryName: '',
@@ -73,14 +73,14 @@ async function getUserGeoData(userIp: string) {
 
 async function getUserTrackingInfo(req: Request) {
   const clientIp = requestIp.getClientIp(req) || '';
-  const userGeoData = getUserGeoData(clientIp);
+  const userGeoData = _getUserGeoData(clientIp);
 
   const userAgentString = req.get('User-Agent') || '';
   const userAgentParser = new UAParser(userAgentString);
-  const browserInfo = getBrowserString(userAgentParser);
+  const browserInfo = _getBrowserString(userAgentParser);
 
   const { city, countryName } = await userGeoData;
-  const location = getLocationString(city, countryName);
+  const location = _getLocationString(city, countryName);
 
   return { ipAddress: clientIp, location, browserInfo };
 }
