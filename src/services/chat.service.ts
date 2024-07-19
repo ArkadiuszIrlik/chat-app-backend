@@ -1,4 +1,5 @@
-import ChatMessage from '@models/ChatMessage.js';
+import ChatMessage, { IChatMessage } from '@models/ChatMessage.js';
+import { HydratedDocument } from 'mongoose';
 
 function getMessages(
   chatId: string,
@@ -15,4 +16,10 @@ function getMessages(
   }
 }
 
-export { getMessages };
+function checkIfIsServerMessage(message: HydratedDocument<IChatMessage>) {
+  const isServerMessage = !!message.get('serverId');
+
+  return isServerMessage;
+}
+
+export { getMessages, checkIfIsServerMessage };
