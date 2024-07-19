@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export interface ITempUser extends mongoose.Document {
+export interface ITempUser {
   email: string;
   password: string;
   expDate: Date;
@@ -14,5 +14,4 @@ const TempUserSchema = new mongoose.Schema<ITempUser>({
   verificationToken: { type: String, required: true, unique: true },
 });
 
-export default mongoose.models.TempUser ||
-  mongoose.model<ITempUser>('TempUser', TempUserSchema);
+export default mongoose.model<ITempUser>('TempUser', TempUserSchema);
