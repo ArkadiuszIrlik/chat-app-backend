@@ -169,6 +169,10 @@ function getClientSafeSubset(
   return clientSubset;
 }
 
+function getUserByEmail(email: string) {
+  return User.findOne({ email }).exec();
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -177,4 +181,5 @@ export {
   leaveServer,
   UserAuthLevel,
   getClientSafeSubset,
+  getUserByEmail,
 };
