@@ -1,4 +1,5 @@
 import { SERVER_IMAGES_PATH, USER_IMAGES_PATH } from '@config/data.config.js';
+import { IChatMessage } from '@models/ChatMessage.js';
 import { IServer } from '@models/Server.js';
 import { IUser } from '@models/User.js';
 import { UserOnlineStatus } from '@src/typesModule.js';
@@ -269,6 +270,74 @@ function getUserValuesFixture(dataOverride: Partial<IUser> = {}): IUser {
   return { ...userFixture, ...dataOverride };
 }
 
+/** Returns a mock ChatMessage document with mongoose functions replaced
+ * with jest mocks.
+ *
+ * @param dataOverride object with replacement values for any of the
+ * properties, both the document values and the mongoose functions
+ */
+function getChatMessageDocFixture(
+  type: 'server' | 'dm' = 'server',
+  dataOverride: Partial<HydratedDocument<IChatMessage>> = {},
+) {
+  const baseDocProperties = getChatMessageValuesFixture(type);
+  const mongooseProperties = {
+    _id: new mongoose.Types.ObjectId(),
+    save: jest.fn(),
+    populate: jest.fn(),
+  };
+
+  const objectWithOverrides = {
+    ...baseDocProperties,
+    ...mongooseProperties,
+    ...dataOverride,
+  };
+
+  function toObject() {
+    const baseWithOverrides = Object.fromEntries(
+      (
+        Object.keys(baseDocProperties) as (keyof typeof baseDocProperties)[]
+      ).map((key) => [key, objectWithOverrides[key]]),
+    );
+    return {
+      ...baseWithOverrides,
+      _id: objectWithOverrides._id,
+      id: objectWithOverrides._id.toString(),
+    };
+  }
+
+  return {
+    ...baseDocProperties,
+    ...mongooseProperties,
+    ...dataOverride,
+    toObject: dataOverride.toObject ?? toObject,
+  } as HydratedDocument<IChatMessage>;
+}
+
+/** Returns an object with mock values, implementing the ChatMessage
+ * schema. Can be passed into the ChatMessage model constructor to
+ * create a ChatMessage document.
+ * @param dataOverride object with replacement values for any of the
+ * properties
+ */
+function getChatMessageValuesFixture(
+  type: 'server' | 'dm' = 'server',
+  dataOverride: Partial<IChatMessage> = {},
+): IChatMessage {
+  const chatMessageFixture: IChatMessage = {
+    postedAt: new Date(Date.now() - 10 * 60 * 1000),
+    author: new mongoose.Types.ObjectId(),
+    text: 'Hello, this is a test chat message.',
+    chatId: new mongoose.Types.ObjectId(),
+    clientId: new mongoose.Types.ObjectId().toString(),
+  };
+  if (type === 'server') {
+    chatMessageFixture.serverId = new mongoose.Types.ObjectId();
+  }
+
+  return { ...chatMessageFixture, ...dataOverride };
+}
+
 export {
   getServerFixture,
   getServerDocFixture,
@@ -276,4 +345,6 @@ export {
   getUserFixture,
   getUserDocFixture,
   getUserValuesFixture,
+  getChatMessageDocFixture,
+  getChatMessageValuesFixture,
 };
