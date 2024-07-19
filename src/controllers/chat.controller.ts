@@ -1,43 +1,38 @@
-import { getEmailFromJwt } from '@helpers/auth.helpers.js';
-import ChatMessage from '@models/ChatMessage.js';
-import User from '@models/User.js';
-import { NextFunction, Request, Response } from 'express';
-import mongoose from 'mongoose';
+import { Request, Response } from 'express';
+import * as usersService from '@services/users.service.js';
+import * as chatService from '@services/chat.service.js';
 
-export async function getMessages(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function getMessages(req: Request, res: Response) {
   const chatId = req.params.chatId;
-  if (!mongoose.Types.ObjectId.isValid(chatId)) {
-    const err = new Error('Invalid param');
-    err.status = 404;
-    return next(err);
+
+  const accessingUserId = req.decodedAuth?.userId;
+  if (!accessingUserId) {
+    return res.status(401).json({ message: 'Missing user credentials' });
   }
 
-  const email = req.decodedAuth?.email || getEmailFromJwt(req.cookies.auth);
-  const user = await User.findOne({ email }).exec();
-
+  const user = await usersService.getUser(accessingUserId);
   if (user === null) {
     return res.status(404).json({ message: 'User not found' });
   }
 
-  const messages = await ChatMessage.find({ chatId })
-    .sort({ postedAt: -1 })
-    .limit(20)
-    .populate('author', 'username profileImg')
-    .exec();
+  const messages = await chatService.getMessages(chatId, {
+    populateAuthor: true,
+  });
 
   // No messages found
   if (messages.length === 0) {
     return res.status(404).json({ message: 'Messages not found' });
   }
 
-  const isServerMessage = !!messages[0].get('serverId');
+  const isServerMessage = chatService.checkIfIsServerMessage(messages[0]);
   if (isServerMessage) {
-    const serverId = messages[0].serverId;
-    const isUserInServer = !!user?.serversIn.find((id) => id.equals(serverId));
+    // assert as not undefined because of the isServerMessage check
+    const serverId = chatService.getMessageServerId(messages[0])!;
+
+    const isUserInServer = await usersService.checkIfIsInServer(
+      user,
+      serverId.toString(),
+    );
 
     if (!isUserInServer) {
       return res
