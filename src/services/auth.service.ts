@@ -16,4 +16,8 @@ async function hashPassword(password: string) {
   return hashedPassword;
 }
 
-export { hashPassword };
+function generateTempUserVerificationToken() {
+  return crypto.randomUUID();
+}
+
+export { hashPassword, generateTempUserVerificationToken };
