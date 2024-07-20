@@ -1,3 +1,5 @@
+import { CLIENT_EMAIL_VERIFICATION_PATH } from '@config/client.config.js';
+
 function getClientUrl(url: string) {
   const urlExpression =
     'https?://(www.)?[-a-zA-Z0-9@:%._+~#=]{1,256}.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)';
@@ -15,4 +17,11 @@ function getClientUrl(url: string) {
   }
   return mainURL + nextUrl;
 }
-export { getClientUrl };
+
+function getEmailVerificationUrl(verificationToken: string) {
+  return getClientUrl(
+    CLIENT_EMAIL_VERIFICATION_PATH + `?token=${verificationToken}`,
+  );
+}
+
+export { getClientUrl, getEmailVerificationUrl };
