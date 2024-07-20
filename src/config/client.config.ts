@@ -1,0 +1,3 @@
+const CLIENT_EMAIL_VERIFICATION_PATH = '/verify-email';
+
+export { CLIENT_EMAIL_VERIFICATION_PATH };
