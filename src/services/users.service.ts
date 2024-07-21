@@ -173,6 +173,12 @@ function getUserByEmail(email: string) {
   return User.findOne({ email }).exec();
 }
 
+async function getUserPassword(user: HydratedDocument<IUser> | string) {
+  const userToCheck = await _getUserFromParam(user);
+
+  return userToCheck.password;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -182,4 +188,5 @@ export {
   UserAuthLevel,
   getClientSafeSubset,
   getUserByEmail,
+  getUserPassword,
 };
