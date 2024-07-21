@@ -179,6 +179,16 @@ async function getUserPassword(user: HydratedDocument<IUser> | string) {
   return userToCheck.password;
 }
 
+function getUserId(user: HydratedDocument<IUser>) {
+  return user._id;
+}
+
+async function getUserEmail(user: HydratedDocument<IUser> | string) {
+  const userToCheck = await _getUserFromParam(user);
+
+  return userToCheck.email;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -189,4 +199,6 @@ export {
   getClientSafeSubset,
   getUserByEmail,
   getUserPassword,
+  getUserId,
+  getUserEmail,
 };
