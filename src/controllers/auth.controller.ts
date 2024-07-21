@@ -1,11 +1,9 @@
-import { NextFunction, Request, Response } from 'express';
-import User from '@models/User.js';
+import { Request, Response } from 'express';
 import {
   setAuthCookie,
   setRefreshCookie,
   signAuthJwt,
 } from '@helpers/auth.helpers.js';
-import TempUser from '@models/TempUser.js';
 import * as authService from '@services/auth.service.js';
 import * as usersService from '@services/users.service.js';
 import * as mailService from '@services/mail.service.js';
@@ -93,29 +91,22 @@ export function logOutUser(_req: Request, res: Response) {
   return res.json({ message: 'Logged out successfully' });
 }
 
-export async function verifyEmail(
-  req: Request,
-  res: Response,
-  _next: NextFunction,
-) {
-  function denyToken() {
+export async function verifyEmail(req: Request, res: Response) {
+  // type checked by validation middleware
+  const verificationToken = req.query.token as string;
+
+  const tempUser =
+    await tempUsersService.getTempUserFromToken(verificationToken);
+  if (tempUser === null) {
     return res.status(404).json({ message: 'Invalid verification token' });
   }
-  const verificationToken = req.query.token;
-  if (!verificationToken) {
-    return denyToken();
-  }
-  const tempUser = await TempUser.findOne({ verificationToken }).exec();
 
-  if (tempUser === null) {
-    return denyToken();
-  }
-  const isExpired = tempUser.expDate < new Date();
+  const isExpired = await tempUsersService.checkIfTempUserExpired(tempUser);
   if (isExpired) {
-    return denyToken();
+    return res.status(404).json({ message: 'Verification token expired' });
   }
 
-  await User.create({ email: tempUser.email, password: tempUser.password });
+  await usersService.createUser(tempUser);
 
   return res.status(200).json({
     message: 'Email address verified successfully',
