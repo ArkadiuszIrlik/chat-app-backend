@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import argon2 from 'argon2';
-import User, { IUser } from '@models/User.js';
+import User from '@models/User.js';
 import {
-  generateRefreshToken,
   setAuthCookie,
   setRefreshCookie,
   signAuthJwt,
@@ -52,42 +50,42 @@ export async function registerUser(req: Request, res: Response) {
   });
 }
 
-export async function logInUser(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    const { email, password } = req.body;
-    const user: IUser = await User.findOne({ email }).exec();
+export async function logInUser(req: Request, res: Response) {
+  const { email, password } = req.body;
 
-    // prevent timing attacks when user not found
-    if (!user) {
-      const placeholderPassword =
-        '$argon2id$v=19$m=19456,t=2,p=1$a0Ssm0ypgf6Tb5TU5usH0A$wvwQMNUX1kOasnZdXgkrpaOivDCzCdOR3ervvKya4JI';
-      await argon2.verify(placeholderPassword, password);
-      return res.status(400).json({ message: 'Invalid email or password' });
-    }
+  const user = await usersService.getUserByEmail(email);
 
-    const passwordMatch = await argon2.verify(user.password, password, {
-      secret: Buffer.from(process.env.PASSWORD_PEPPER!),
-    });
-
-    if (!passwordMatch) {
-      return res.status(400).json({ message: 'Invalid email or password' });
-    }
-    const token = await signAuthJwt(user._id, user.email);
-    setAuthCookie(res, token);
-
-    const { token: refreshToken } = await generateRefreshToken(user);
-    setRefreshCookie(res, refreshToken);
-
-    return res.status(200).json({
-      message: 'Logged in successfully',
-    });
-  } catch (err) {
-    return next(err);
+  // prevent timing attacks when user not found
+  if (!user) {
+    const placeholderPassword =
+      '$argon2id$v=19$m=19456,t=2,p=1$a0Ssm0ypgf6Tb5TU5usH0A$wvwQMNUX1kOasnZdXgkrpaOivDCzCdOR3ervvKya4JI';
+    await authService.verifyPasswordMatch(placeholderPassword, password);
+    return res.status(400).json({ message: 'Invalid email or password' });
   }
+
+  const userPassword = await usersService.getUserPassword(user);
+  const passwordMatch = await authService.verifyPasswordMatch(
+    userPassword,
+    password,
+  );
+  if (!passwordMatch) {
+    return res.status(400).json({ message: 'Invalid email or password' });
+  }
+
+  const userId = usersService.getUserId(user);
+  const userEmail = await usersService.getUserEmail(user);
+  const authToken = await signAuthJwt(userId, userEmail);
+  setAuthCookie(res, authToken);
+
+  const refreshTokenObject = authService.generateRefreshTokenObject();
+  await usersService.addRefreshToken(user, refreshTokenObject);
+  const refreshToken =
+    authService.getTokenFromRefreshTokenObject(refreshTokenObject);
+  setRefreshCookie(res, refreshToken);
+
+  return res.status(200).json({
+    message: 'Logged in successfully',
+  });
 }
 
 export async function logOutUser(
