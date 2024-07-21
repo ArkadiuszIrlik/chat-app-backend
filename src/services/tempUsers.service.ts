@@ -32,4 +32,8 @@ async function getTempUserVerificationToken(
   return userToCheck.verificationToken;
 }
 
-export { createTempUser, getTempUserVerificationToken };
+function getTempUserFromToken(verificationToken: string) {
+  return TempUser.findOne({ verificationToken }).exec();
+}
+
+export { createTempUser, getTempUserVerificationToken, getTempUserFromToken };
