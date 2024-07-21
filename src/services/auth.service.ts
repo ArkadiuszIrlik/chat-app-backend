@@ -1,4 +1,7 @@
+import { AUTH_JWT_MAX_AGE } from '@config/auth.config.js';
 import argon2 from 'argon2';
+import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 
 async function hashPassword(password: string) {
   if (!process.env.PASSWORD_PEPPER) {
@@ -27,4 +30,28 @@ function verifyPasswordMatch(hashedPassword: string, plainPassword: string) {
   });
 }
 
-export { hashPassword, verifyPasswordMatch };
+function signAuthJwt(userId: mongoose.Types.ObjectId | string, email: string) {
+  return new Promise<string>((resolve, reject) => {
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET environment variable missing');
+      return reject('Server error');
+    }
+    jwt.sign(
+      { userId },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: `${AUTH_JWT_MAX_AGE}ms`,
+        subject: email,
+      },
+      (err, encoded) => {
+        if (err) {
+          return reject(err);
+        } else {
+          resolve(encoded!);
+        }
+      },
+    );
+  });
+}
+
+export { hashPassword, verifyPasswordMatch, signAuthJwt };
