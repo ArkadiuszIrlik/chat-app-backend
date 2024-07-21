@@ -1,6 +1,9 @@
 import mongoose, { Schema, Types } from 'mongoose';
 
-export interface IUser extends mongoose.Document {
+export interface IRefreshTokenObject {
+  token: string;
+  expDate: Date;
+}
   email: string;
   password: string;
   username: string;
@@ -8,7 +11,7 @@ export interface IUser extends mongoose.Document {
   serversMember: Types.ObjectId[];
   chatsMember: { userId: Types.ObjectId; chatId: Types.ObjectId }[];
   friends: Types.ObjectId[];
-  refreshTokens: { token: string; expDate: Date }[];
+  refreshTokens: IRefreshTokenObject[];
 }
 
 const UserSchema = new mongoose.Schema<IUser>({
