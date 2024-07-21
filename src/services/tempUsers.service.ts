@@ -36,4 +36,18 @@ function getTempUserFromToken(verificationToken: string) {
   return TempUser.findOne({ verificationToken }).exec();
 }
 
-export { createTempUser, getTempUserVerificationToken, getTempUserFromToken };
+async function checkIfTempUserExpired(
+  tempUser: string | HydratedDocument<ITempUser>,
+) {
+  const userToCheck = await _getTempUserFromParam(tempUser);
+
+  const isExpired = userToCheck.expDate < new Date();
+  return isExpired;
+}
+
+export {
+  createTempUser,
+  getTempUserVerificationToken,
+  getTempUserFromToken,
+  checkIfTempUserExpired,
+};
