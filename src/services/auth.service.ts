@@ -1,4 +1,8 @@
-import { AUTH_JWT_MAX_AGE } from '@config/auth.config.js';
+import {
+  AUTH_JWT_MAX_AGE,
+  REFRESH_TOKEN_MAX_AGE,
+} from '@config/auth.config.js';
+import { IRefreshTokenObject } from '@models/User.js';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
@@ -54,4 +58,19 @@ function signAuthJwt(userId: mongoose.Types.ObjectId | string, email: string) {
   });
 }
 
-export { hashPassword, verifyPasswordMatch, signAuthJwt };
+function generateRefreshTokenObject() {
+  const token = crypto.randomUUID();
+  const refreshTokenObj: IRefreshTokenObject = {
+    token,
+    expDate: new Date(Date.now() + REFRESH_TOKEN_MAX_AGE),
+  };
+
+  return refreshTokenObj;
+}
+
+export {
+  hashPassword,
+  verifyPasswordMatch,
+  signAuthJwt,
+  generateRefreshTokenObject,
+};
