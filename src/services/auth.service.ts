@@ -68,9 +68,16 @@ function generateRefreshTokenObject() {
   return refreshTokenObj;
 }
 
+function getTokenFromRefreshTokenObject(
+  refreshTokenObject: IRefreshTokenObject,
+) {
+  return refreshTokenObject.token;
+}
+
 export {
   hashPassword,
   verifyPasswordMatch,
   signAuthJwt,
   generateRefreshTokenObject,
+  getTokenFromRefreshTokenObject,
 };
