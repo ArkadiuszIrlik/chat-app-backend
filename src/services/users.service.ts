@@ -205,6 +205,13 @@ async function addRefreshToken(
   return userToModify;
 }
 
+async function createUser(userProperties: Partial<IUser>) {
+  const user = new User(userProperties);
+  await user.save();
+
+  return user;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -218,4 +225,5 @@ export {
   getUserId,
   getUserEmail,
   addRefreshToken,
+  createUser,
 };
