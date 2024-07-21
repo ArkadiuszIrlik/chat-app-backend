@@ -7,61 +7,49 @@ import {
   setRefreshCookie,
   signAuthJwt,
 } from '@helpers/auth.helpers.js';
-import { sendVerificationMail } from '@helpers/mail.helpers.js';
 import TempUser from '@models/TempUser.js';
-import {
-  CLIENT_RESET_PASSWORD_URL,
-  TEMP_USER_MAX_AGE,
-} from '@config/auth.config.js';
-import { getUserTrackingInfo } from '@helpers/tracking.helpers.js';
-import { CLIENT_EMAIL_VERIFICATION_URL } from '@config/mail.config.js';
+import * as authService from '@services/auth.service.js';
+import * as usersService from '@services/users.service.js';
+import * as mailService from '@services/mail.service.js';
+import * as tempUsersService from '@services/tempUsers.service.js';
+import * as trackingService from '@services/tracking.service.js';
+import * as clientService from '@services/client.service.js';
+import { CLIENT_RESET_PASSWORD_PATH } from '@config/client.config.js';
 
-export async function registerUser(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    const { email, password } = req.body;
+export async function registerUser(req: Request, res: Response) {
+  const { email, password } = req.body;
 
-    const existingEmail = User.findOne({ email }).exec();
+  const existingEmailUser = usersService.getUserByEmail(email);
+  const hashedPassword = await authService.hashPassword(password);
+  const isExistingEmail = !!(await existingEmailUser);
 
-    const hashedPassword = await argon2.hash(password, {
-      type: argon2.argon2id,
-      memoryCost: 19456,
-      timeCost: 2,
-      parallelism: 1,
-      secret: Buffer.from(process.env.PASSWORD_PEPPER!),
-    });
+  if (!isExistingEmail) {
+    const tempUser = await tempUsersService.createTempUser(
+      email,
+      hashedPassword,
+    );
+    const verificationToken =
+      await tempUsersService.getTempUserVerificationToken(tempUser);
+    const clientVerificationUrl =
+      clientService.getEmailVerificationUrl(verificationToken);
 
-    const isExistingEmail = !!(await existingEmail);
+    await mailService.sendVerifyEmailNewAccount(email, clientVerificationUrl);
+  } else {
+    const userTrackingInfo = await trackingService.getUserTrackingInfo(req);
+    const resetPasswordUrl = clientService.getClientUrl(
+      CLIENT_RESET_PASSWORD_PATH,
+    );
 
-    if (!isExistingEmail) {
-      const verificationToken = crypto.randomUUID();
-      await TempUser.create({
-        email,
-        password: hashedPassword,
-        expDate: new Date(Date.now() + TEMP_USER_MAX_AGE),
-        verificationToken,
-      });
-      await sendVerificationMail(email, isExistingEmail, {
-        verificationUrl:
-          CLIENT_EMAIL_VERIFICATION_URL + `?token=${verificationToken}`,
-      });
-    } else {
-      const userLocationInfo = await getUserTrackingInfo(req);
-      await sendVerificationMail(email, isExistingEmail, {
-        resetPasswordUrl: CLIENT_RESET_PASSWORD_URL,
-        ...userLocationInfo,
-      });
-    }
-
-    return res.status(200).json({
-      message: 'Confirmation email sent to provided address',
-    });
-  } catch (err) {
-    return next(err);
+    await mailService.sendExistingEmailRegisterAttempt(
+      email,
+      resetPasswordUrl,
+      userTrackingInfo,
+    );
   }
+
+  return res.status(200).json({
+    message: 'Confirmation email sent to provided address',
+  });
 }
 
 export async function logInUser(
