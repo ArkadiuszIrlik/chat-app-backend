@@ -1,4 +1,4 @@
-import User, { IUser } from '@models/User.js';
+import User, { IRefreshTokenObject, IUser } from '@models/User.js';
 import { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
 import * as patchService from '@services/patch.service.js';
@@ -189,6 +189,22 @@ async function getUserEmail(user: HydratedDocument<IUser> | string) {
   return userToCheck.email;
 }
 
+async function addRefreshToken(
+  user: HydratedDocument<IUser> | string,
+  refreshTokenObject: IRefreshTokenObject,
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  const userToModify = await _getUserFromParam(user);
+
+  userToModify.refreshTokens.push(refreshTokenObject);
+
+  if (saveDocument) {
+    await userToModify.save();
+  }
+
+  return userToModify;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -201,4 +217,5 @@ export {
   getUserPassword,
   getUserId,
   getUserEmail,
+  addRefreshToken,
 };
