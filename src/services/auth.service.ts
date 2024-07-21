@@ -4,6 +4,7 @@ import {
 } from '@config/auth.config.js';
 import { IRefreshTokenObject } from '@models/User.js';
 import argon2 from 'argon2';
+import { Response } from 'express';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 
@@ -74,10 +75,15 @@ function getTokenFromRefreshTokenObject(
   return refreshTokenObject.token;
 }
 
+function logOutUser(res: Response) {
+  return res.clearCookie('auth').clearCookie('refresh');
+}
+
 export {
   hashPassword,
   verifyPasswordMatch,
   signAuthJwt,
   generateRefreshTokenObject,
   getTokenFromRefreshTokenObject,
+  logOutUser,
 };
