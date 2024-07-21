@@ -16,4 +16,15 @@ async function hashPassword(password: string) {
   return hashedPassword;
 }
 
-export { hashPassword };
+function verifyPasswordMatch(hashedPassword: string, plainPassword: string) {
+  if (!process.env.PASSWORD_PEPPER) {
+    console.error('PASSWORD_PEPPER env variable missing');
+    throw Error('Server error');
+  }
+
+  return argon2.verify(hashedPassword, plainPassword, {
+    secret: Buffer.from(process.env.PASSWORD_PEPPER),
+  });
+}
+
+export { hashPassword, verifyPasswordMatch };
