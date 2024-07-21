@@ -88,15 +88,9 @@ export async function logInUser(req: Request, res: Response) {
   });
 }
 
-export async function logOutUser(
-  _req: Request,
-  res: Response,
-  _next: NextFunction,
-) {
-  return res
-    .clearCookie('auth')
-    .clearCookie('refresh')
-    .json({ message: 'Logged out successfully' });
+export function logOutUser(_req: Request, res: Response) {
+  authService.logOutUser(res);
+  return res.json({ message: 'Logged out successfully' });
 }
 
 export async function verifyEmail(
