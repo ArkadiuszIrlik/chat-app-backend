@@ -5,7 +5,7 @@ import { HydratedDocument, Types } from 'mongoose';
 
 function emitUserJoinedServer(
   socketIo: SocketServer,
-  user: HydratedDocument<IUser>,
+  user: { _id: Types.ObjectId; username: string; profileImg: string },
   server: HydratedDocument<IServer>,
 ) {
   socketIo.to(server.socketId.toString()).emit(
