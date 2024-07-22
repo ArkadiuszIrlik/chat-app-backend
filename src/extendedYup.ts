@@ -11,4 +11,15 @@ Yup.addMethod(Yup.string, 'mongooseId', function (errorMessage?: string) {
   });
 });
 
+Yup.addMethod(Yup.mixed, 'notTruncated', function (errorMessage?: string) {
+  const message = errorMessage ?? 'Uploaded file is too big';
+  return this.test('isNotTruncated', message, function (value) {
+    if (typeof value === 'object' && 'truncated' in value) {
+      return !value.truncated;
+    } else {
+      return true;
+    }
+  });
+});
+
 export { Yup as ExtendedYup };

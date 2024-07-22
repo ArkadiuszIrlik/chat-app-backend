@@ -28,6 +28,13 @@ declare module 'yup' {
   > extends yup.BaseSchema<TType, TContext, TOut> {
     mongooseId(errorMessage?: string): StringSchema<TType, TContext>;
   }
+
+  interface MixedSchema<
+    TType extends Maybe<string> = string | undefined,
+    TContext extends AnyObject = AnyObject,
+    TOut extends TType = TType,
+  > extends yup.BaseSchema<TType, TContext, TOut> {
+    notTruncated(errorMessage?: string): MixedSchema<TType, TContext>;
   }
 }
 
