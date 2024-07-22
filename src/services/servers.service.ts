@@ -6,6 +6,7 @@ import mongoose, { HydratedDocument } from 'mongoose';
 import ShortUniqueId from 'short-unique-id';
 import * as patchService from '@services/patch.service.js';
 import { getChannelsFromCategories } from '@helpers/servers.helpers.js';
+import path from 'path';
 
 function _populateServerMembers(server: HydratedDocument<IServer>) {
   return server.populate({
@@ -102,7 +103,7 @@ async function createInvite(
 }
 
 function getInviteUrlFromCode(inviteCode: string) {
-  return getClientUrl(SERVER_INVITE_PATH + inviteCode);
+  return getClientUrl(path.join(SERVER_INVITE_PATH, inviteCode));
 }
 
 function findInvite(inviteCode: string) {
