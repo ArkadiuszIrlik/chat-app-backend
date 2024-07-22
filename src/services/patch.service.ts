@@ -71,6 +71,7 @@ function patchDoc<ISchema>(
   targetDoc.set(updateObject);
   return targetDoc;
 }
+
 function updateCommandValue(patch: any[], pathToCommand: string, value: any) {
   patch.forEach((command) => {
     if (command?.path === pathToCommand) {
