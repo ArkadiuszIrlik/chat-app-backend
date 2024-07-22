@@ -29,4 +29,23 @@ Yup.addMethod(Yup.mixed, 'notArray', function (errorMessage?: string) {
   });
 });
 
+Yup.addMethod(
+  Yup.mixed,
+  'oneOfMimeType',
+  function (allowedTypes: string[], errorMessage?: string) {
+    const message = errorMessage ?? "Value can't be an array";
+    return this.test('isNotArrayType', message, function (value) {
+      if (typeof value === 'object' && 'mimetype' in value) {
+        if (allowedTypes.includes(value.mimetype as string)) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    });
+  },
+);
+
 export { Yup as ExtendedYup };

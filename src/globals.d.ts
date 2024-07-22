@@ -36,6 +36,10 @@ declare module 'yup' {
   > extends yup.BaseSchema<TType, TContext, TOut> {
     notArray(errorMessage?: string): MixedSchema<TType, TContext>;
     notTruncated(errorMessage?: string): MixedSchema<TType, TContext>;
+    oneOfMimeType(
+      allowedTypes: string[],
+      errorMessage?: string,
+    ): MixedSchema<TType, TContext>;
   }
 }
 
