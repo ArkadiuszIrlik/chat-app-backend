@@ -116,7 +116,11 @@ export async function processInviteCode(req: Request, res: Response) {
     await usersService.addServerAsMember(user, server._id);
   }
 
-  socketService.emitUserJoinedServer(req.socketIo, user, server);
+  const clientSafeUser = usersService.getClientSafeSubset(
+    user,
+    usersService.UserAuthLevel.OtherUser,
+  );
+  socketService.emitUserJoinedServer(req.socketIo, clientSafeUser, server);
 
   return res
     .status(200)
