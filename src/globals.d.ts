@@ -34,6 +34,7 @@ declare module 'yup' {
     TContext extends AnyObject = AnyObject,
     TOut extends TType = TType,
   > extends yup.BaseSchema<TType, TContext, TOut> {
+    notArray(errorMessage?: string): MixedSchema<TType, TContext>;
     notTruncated(errorMessage?: string): MixedSchema<TType, TContext>;
   }
 }

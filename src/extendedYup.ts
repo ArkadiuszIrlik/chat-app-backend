@@ -22,4 +22,11 @@ Yup.addMethod(Yup.mixed, 'notTruncated', function (errorMessage?: string) {
   });
 });
 
+Yup.addMethod(Yup.mixed, 'notArray', function (errorMessage?: string) {
+  const message = errorMessage ?? "Value can't be an array";
+  return this.test('isNotArrayType', message, function (value) {
+    return !Array.isArray(value);
+  });
+});
+
 export { Yup as ExtendedYup };
