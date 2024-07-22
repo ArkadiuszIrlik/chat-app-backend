@@ -1,4 +1,4 @@
-import { SERVER_INVITE_PATH } from '@config/client.config.js';
+import { CLIENT_SERVER_INVITE_PATH } from '@config/client.config.js';
 import { getClientUrl } from '@helpers/fetch.helpers.js';
 import Server, { IServer } from '@models/Server.js';
 import ServerInvite, { IServerInvite } from '@models/ServerInvite.js';
@@ -103,7 +103,7 @@ async function createInvite(
 }
 
 function getInviteUrlFromCode(inviteCode: string) {
-  return getClientUrl(path.join(SERVER_INVITE_PATH, inviteCode));
+  return getClientUrl(path.join(CLIENT_SERVER_INVITE_PATH, inviteCode));
 }
 
 function findInvite(inviteCode: string) {
