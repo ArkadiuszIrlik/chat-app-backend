@@ -1,6 +1,6 @@
 // Make sure env config is imported first
 import '@config/env.config.js';
-import express, { Request, Response } from 'express';
+import express from 'express';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'node:https';
@@ -12,11 +12,23 @@ import cors from 'cors';
 import errorHandler from 'error-handler-json';
 import fileUpload from 'express-fileupload';
 import path from 'path';
+import {
+  ClientToServerSocketEvents,
+  InterServerSocketEvents,
+  ServerToClientSocketEvents,
+  SocketData,
+  SocketWithAuth,
+} from '@customTypes/socket.types.js';
 
 const PORT = process.env.PORT || 3000;
 const app = express();
 const server = createServer({ key, cert }, app);
-const io = new Server(server, {
+const io = new Server<
+  ClientToServerSocketEvents,
+  ServerToClientSocketEvents,
+  InterServerSocketEvents,
+  SocketData
+>(server, {
   cors: {
     origin: process.env.FRONTEND_ADDRESS,
     credentials: true,
@@ -56,7 +68,7 @@ app.use(
   express.static(path.join(__dirname, '..', 'assets')),
 );
 
-app.get('/', (_: Request, res: Response) => {
+app.get('/', (_req, res) => {
   res.send('Hello world!');
 });
 
