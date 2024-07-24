@@ -11,6 +11,7 @@ import connectToDb from '@config/db.config.js';
 import cors from 'cors';
 import errorHandler from 'error-handler-json';
 import fileUpload from 'express-fileupload';
+import path from 'path';
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -49,6 +50,11 @@ app.use((req, _res, next) => {
   }
   return next();
 });
+app.use(
+  '/static',
+  helmet({ crossOriginResourcePolicy: { policy: 'same-site' } }),
+  express.static(path.join(__dirname, '..', 'assets')),
+);
 
 app.get('/', (_: Request, res: Response) => {
   res.send('Hello world!');
