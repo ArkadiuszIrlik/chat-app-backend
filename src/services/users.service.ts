@@ -22,7 +22,7 @@ async function getUser(
 ) {
   const user = await User.findById(userId).exec();
   if (user && populateServersIn) {
-    user.populate('serversIn');
+    await user.populate('serversIn');
   }
   return user;
 }
