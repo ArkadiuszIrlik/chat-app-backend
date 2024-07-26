@@ -130,7 +130,7 @@ const selfAuthProperties = [
   'friends',
 ] as const;
 
-const otherUserAuthProperties = ['username', 'profileImg'] as const;
+const otherUserAuthProperties = ['_id', 'username', 'profileImg'] as const;
 
 /** Returns plain object subset of the provided user document
  * with resolved getters. The subset of properties returned is
@@ -175,7 +175,9 @@ function getClientSafeSubset(
   // type assertion is necessary since mongoose disregards
   // getter return types
   const clientSubset = Object.fromEntries(
-    safeProperties.map((key) => [key, plainObjectUser[key]]),
+    safeProperties
+      // .filter((key) => key in plainObjectUser)
+      .map((key) => [key, plainObjectUser[key]]),
   ) as unknown as ClientSafeIUser;
 
   return clientSubset;
