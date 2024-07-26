@@ -1,6 +1,6 @@
 import { CLIENT_SERVER_INVITE_PATH } from '@config/client.config.js';
 import { getClientUrl } from '@helpers/fetch.helpers.js';
-import Server, { IServer } from '@models/Server.js';
+import Server, { IChannelCategory, IServer } from '@models/Server.js';
 import ServerInvite, { IServerInvite } from '@models/ServerInvite.js';
 import mongoose, { HydratedDocument } from 'mongoose';
 import ShortUniqueId from 'short-unique-id';
@@ -417,6 +417,70 @@ async function getServerSocketId(server: HydratedDocument<IServer> | string) {
   return serverSocket;
 }
 
+interface ClientSafeIServer {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  serverImg: string;
+  ownerId: mongoose.Types.ObjectId;
+  members: mongoose.Types.ObjectId[];
+  channelCategories: IChannelCategory[];
+  socketId: mongoose.Types.ObjectId;
+}
+
+enum ServerAuthLevel {
+  Member = 'MEMBER',
+}
+
+const memberSafeProperties = [
+  '_id',
+  'name',
+  'serverImg',
+  'ownerId',
+  'members',
+  'channelCategories',
+  'socketId',
+] as const;
+
+/** Returns plain object subset of the provided server document
+ * with resolved getters. The subset of properties returned is
+ * determined by the provided authLevel.
+ *
+ * @param server Server document to subset
+ * @param authLevel authorization level, determines which properties
+ * of the Server doc are considered safe to return
+ * @returns plain object with resolved getters
+ */
+function getClientSafeSubset(
+  server: HydratedDocument<IServer>,
+  authLevel: ServerAuthLevel.Member,
+): Pick<ClientSafeIServer, (typeof memberSafeProperties)[number]>;
+function getClientSafeSubset(
+  server: HydratedDocument<IServer>,
+  authLevel: ServerAuthLevel,
+): ClientSafeIServer {
+  let safeProperties: (keyof ClientSafeIServer)[] = [];
+  switch (authLevel) {
+    case ServerAuthLevel.Member:
+      {
+        safeProperties = [...memberSafeProperties];
+      }
+      break;
+    default: {
+      safeProperties = [...memberSafeProperties];
+    }
+  }
+
+  const plainObjectUser = server.toObject({ getters: true });
+
+  // type assertion is necessary since mongoose disregards
+  // getter return types
+  const clientSubset = Object.fromEntries(
+    safeProperties.map((key) => [key, plainObjectUser[key]]),
+  ) as unknown as ClientSafeIServer;
+
+  return clientSubset;
+}
+
 export {
   getServer,
   createServer,
@@ -437,4 +501,7 @@ export {
   removeMember,
   getChannelSocketIds,
   getServerSocketId,
+  ClientSafeIServer,
+  ServerAuthLevel,
+  getClientSafeSubset,
 };
