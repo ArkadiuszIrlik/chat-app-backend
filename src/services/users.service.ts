@@ -128,6 +128,27 @@ interface ClientSafeIUser {
  * of the User doc are considered safe to return
  * @returns plain object with resolved getters
  */
+const selfAuthProperties = [
+  '_id',
+  'email',
+  'username',
+  'profileImg',
+  'prefersOnlineStatus',
+  'serversIn',
+  'chatsIn',
+  'friends',
+] as const;
+
+const otherUserAuthProperties = ['username', 'profileImg'] as const;
+
+function getClientSafeSubset(
+  user: HydratedDocument<IUser>,
+  authLevel: UserAuthLevel.Self,
+): Pick<ClientSafeIUser, (typeof selfAuthProperties)[number]>;
+function getClientSafeSubset(
+  user: HydratedDocument<IUser>,
+  authLevel: UserAuthLevel.OtherUser,
+): Pick<ClientSafeIUser, (typeof otherUserAuthProperties)[number]>;
 function getClientSafeSubset(
   user: HydratedDocument<IUser>,
   authLevel: UserAuthLevel,
@@ -136,25 +157,16 @@ function getClientSafeSubset(
   switch (authLevel) {
     case UserAuthLevel.Self:
       {
-        safeProperties = [
-          '_id',
-          'email',
-          'username',
-          'profileImg',
-          'prefersOnlineStatus',
-          'serversIn',
-          'chatsIn',
-          'friends',
-        ];
+        safeProperties = [...selfAuthProperties];
       }
       break;
     case UserAuthLevel.OtherUser:
       {
-        safeProperties = ['username', 'profileImg'];
+        safeProperties = [...otherUserAuthProperties];
       }
       break;
     default: {
-      safeProperties = ['username', 'profileImg'];
+      safeProperties = [...otherUserAuthProperties];
     }
   }
 
