@@ -124,7 +124,7 @@ export default async function checkAuthExpiry(
               setAuthCookies(res, encodedJwt, nextRefreshToken);
 
               if (req.isSocketRequest) {
-                req.user = user;
+                req.context.requestingUser = user;
               }
 
               req.decodedAuth = { userId: decoded.userId, email: decoded.sub };
@@ -140,7 +140,7 @@ export default async function checkAuthExpiry(
           const user: IUser = await User.findOne({
             email: decoded.sub,
           }).exec();
-          req.user = user;
+          req.context.requestingUser = user;
         }
         req.decodedAuth = { userId: decoded.userId, email: decoded.sub };
         return next();
