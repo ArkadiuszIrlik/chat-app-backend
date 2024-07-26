@@ -38,6 +38,14 @@ interface ClientSafeIChatMessage {
   serverId?: Types.ObjectId;
 }
 
+const authorizedAuthProperties = [
+  'postedAt',
+  'author',
+  'text',
+  'chatId',
+  'serverId',
+] as const;
+
 /** Returns plain object subset of the provided chatMessage document
  * with resolved getters. The subset of properties returned is
  * determined by the provided authLevel.
@@ -47,14 +55,6 @@ interface ClientSafeIChatMessage {
  * of the ChatMessage doc are considered safe to return
  * @returns plain object with resolved getters
  */
-const authorizedAuthProperties = [
-  'postedAt',
-  'author',
-  'text',
-  'chatId',
-  'serverId',
-] as const;
-
 function getClientSafeSubset(
   chatMessage: HydratedDocument<IChatMessage>,
   authLevel: ChatMessageAuthLevel.Authorized,

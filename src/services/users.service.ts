@@ -119,15 +119,6 @@ interface ClientSafeIUser {
   refreshTokens?: { token: string; expDate: Date }[];
 }
 
-/** Returns plain object subset of the provided user document
- * with resolved getters. The subset of properties returned is
- * determined by the provided authLevel.
- *
- * @param user User document to subset
- * @param authLevel authorization level, determines which properties
- * of the User doc are considered safe to return
- * @returns plain object with resolved getters
- */
 const selfAuthProperties = [
   '_id',
   'email',
@@ -141,6 +132,15 @@ const selfAuthProperties = [
 
 const otherUserAuthProperties = ['username', 'profileImg'] as const;
 
+/** Returns plain object subset of the provided user document
+ * with resolved getters. The subset of properties returned is
+ * determined by the provided authLevel.
+ *
+ * @param user User document to subset
+ * @param authLevel authorization level, determines which properties
+ * of the User doc are considered safe to return
+ * @returns plain object with resolved getters
+ */
 function getClientSafeSubset(
   user: HydratedDocument<IUser>,
   authLevel: UserAuthLevel.Self,
