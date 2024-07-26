@@ -104,7 +104,7 @@ enum UserAuthLevel {
   OtherUser = 'OTHER_USER',
 }
 
-export interface ClientSafeIUser {
+interface ClientSafeIUser {
   _id: mongoose.Types.ObjectId;
   email?: string;
   username: string;
@@ -219,6 +219,7 @@ export {
   patchUser,
   leaveServer,
   UserAuthLevel,
+  ClientSafeIUser,
   getClientSafeSubset,
   getUserByEmail,
   getUserPassword,
