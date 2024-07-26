@@ -40,9 +40,17 @@ export async function getMessages(req: Request, res: Response) {
         .json({ message: 'Unauthorized to access messages' });
     }
 
-    return res
-      .status(200)
-      .json({ message: 'Messages returned', data: { messages } });
+    const clientSafeMessages = messages.map((message) =>
+      chatService.getClientSafeSubset(
+        message,
+        chatService.ChatMessageAuthLevel.Authorized,
+      ),
+    );
+
+    return res.status(200).json({
+      message: 'Messages returned',
+      data: { messages: clientSafeMessages },
+    });
   } else {
     return res.status(404).json({ message: 'Invalid message format' });
   }
