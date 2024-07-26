@@ -17,7 +17,11 @@ export async function getServer(req: Request, res: Response) {
   });
 
   if (server) {
-    return res.status(200).json(server);
+    const clientSafeServer = serversService.getClientSafeSubset(
+      server,
+      serversService.ServerAuthLevel.Member,
+    );
+    return res.status(200).json(clientSafeServer);
   } else {
     return res.status(404).json({ message: 'Server not found' });
   }
