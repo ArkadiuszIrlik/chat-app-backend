@@ -114,7 +114,9 @@ type SocketWithAuth = Socket<
   SocketData
 > & {
   request: {
-    user: HydratedDocument<IUser>;
+    context: {
+      requestingUser?: HydratedDocument<IUser>;
+    };
   };
 };
 
