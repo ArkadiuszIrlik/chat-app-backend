@@ -96,7 +96,7 @@ interface ClientToServerSocketEvents {
 interface InterServerSocketEvents {}
 
 interface SocketData {
-  user: HydratedDocument<mongoose.MergeType<IUser, { serversIn: IServer[] }>>;
+  user: mongoose.MergeType<HydratedDocument<IUser>, { serversIn: IServer[] }>;
   onlineStatus: UserOnlineStatus;
 }
 
