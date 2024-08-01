@@ -15,7 +15,9 @@ declare global {
         requestingUser?: HydratedDocument<IUser>;
         requestedUser?: HydratedDocument<IUser>;
         requestedServer?: HydratedDocument<IServer>;
+        isSocketRequest?: boolean;
       };
+      _query?: Record<string, any>;
     }
   }
 }
