@@ -1,7 +1,8 @@
 import { getDecodedAuthFromJwt } from '@helpers/auth.helpers.js';
-import Server from '@models/Server.js';
 import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
+import * as usersService from '@services/users.service.js';
+import * as serversService from '@services/servers.service.js';
 
 enum AuthRole {
   ServerOwner = 'SERVER_OWNER',
@@ -9,19 +10,26 @@ enum AuthRole {
   Self = 'SELF',
 }
 
-async function getAccessedServer(req: Request) {
+async function _getAccessedServer(req: Request) {
   const serverId = req.params.serverId;
   if (!mongoose.Types.ObjectId.isValid(serverId)) {
-    return false;
+    return null;
   }
-  const server = req.server ?? (await Server.findOne({ _id: serverId }));
-  return server;
+  if (req.context.requestedServer) {
+    return req.context.requestedServer;
+  } else {
+    const server = await serversService.getServer(serverId);
+    if (server) {
+      req.context.requestedServer = server;
+    }
+    return server;
+  }
 }
 
-function getRequestingUserId(req: Request) {
+function _getRequestingUserId(req: Request) {
   let userId: string | null = null;
-  if (req.user) {
-    userId = req.user._id.toString();
+  if (req.context.requestingUser) {
+    userId = usersService.getUserId(req.context.requestingUser).toString();
   } else if (req.decodedAuth) {
     userId = req.decodedAuth.userId;
   } else {
@@ -43,12 +51,12 @@ function restrictAccess(roleArray: AuthRole[]) {
     async function testIsRoleAllowed(role: AuthRole) {
       switch (role) {
         case AuthRole.ServerOwner: {
-          const server = await getAccessedServer(req);
+          const server = await _getAccessedServer(req);
           if (!server) {
             return false;
           }
 
-          const userId = getRequestingUserId(req);
+          const userId = _getRequestingUserId(req);
           if (!userId) {
             return false;
           }
@@ -61,12 +69,12 @@ function restrictAccess(roleArray: AuthRole[]) {
           }
         }
         case AuthRole.ServerMember: {
-          const server = await getAccessedServer(req);
+          const server = await _getAccessedServer(req);
           if (!server) {
             return false;
           }
 
-          const userId = getRequestingUserId(req);
+          const userId = _getRequestingUserId(req);
           if (!userId) {
             return false;
           }
@@ -85,7 +93,7 @@ function restrictAccess(roleArray: AuthRole[]) {
             return false;
           }
 
-          const userId = getRequestingUserId(req);
+          const userId = _getRequestingUserId(req);
           if (!userId) {
             return false;
           }
