@@ -260,6 +260,10 @@ function getUserOnlineStatus(user: HydratedDocument<IUser>) {
   return user.prefersOnlineStatus;
 }
 
+function getUserRefreshTokens(user: HydratedDocument<IUser>) {
+  return user.refreshTokens;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -277,4 +281,5 @@ export {
   getUserOnlineStatus,
   addRefreshToken,
   createUser,
+  getUserRefreshTokens,
 };
