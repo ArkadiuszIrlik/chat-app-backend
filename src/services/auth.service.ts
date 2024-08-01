@@ -79,6 +79,26 @@ function logOutUser(res: Response) {
   return res.clearCookie('auth').clearCookie('refresh');
 }
 
+/** Sets both "auth" and "refresh" cookie on response object.
+ *
+ * Use this when res.cookie method isn't available, e.g. when working with Socket.IO middleware.
+ */
+function setAuthCookies(
+  res: Response,
+  authToken: string,
+  refreshToken: string,
+) {
+  const cookieParams = `Max-Age=${
+    REFRESH_TOKEN_MAX_AGE / 1000
+  }; Path=/; Expires=${new Date(
+    Date.now() + REFRESH_TOKEN_MAX_AGE,
+  ).toUTCString()}; HttpOnly; Secure; SameSite=Lax`;
+  res.setHeader('Set-Cookie', [
+    `auth=${authToken}; ${cookieParams}`,
+    `refresh=${refreshToken}; ${cookieParams}`,
+  ]);
+}
+
 export {
   hashPassword,
   verifyPasswordMatch,
@@ -86,4 +106,5 @@ export {
   generateRefreshTokenObject,
   getTokenFromRefreshTokenObject,
   logOutUser,
+  setAuthCookies,
 };
