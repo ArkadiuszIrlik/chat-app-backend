@@ -98,6 +98,7 @@ interface InterServerSocketEvents {}
 interface SocketData {
   user: mongoose.MergeType<HydratedDocument<IUser>, { serversIn: IServer[] }>;
   onlineStatus: UserOnlineStatus;
+  channelSocketMap: Map<string, { serverId: string; channelId: string }>;
 }
 
 type SocketServer = Server<
