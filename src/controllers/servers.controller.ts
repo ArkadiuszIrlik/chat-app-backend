@@ -338,7 +338,7 @@ export async function removeUser(req: Request, res: Response) {
   }
 
   const channelSockets = await serversService.getChannelSocketIds(server);
-  const serverSocket = await serversService.getServerSocketId(server);
+  const serverSocket = serversService.getServerSocketId(server);
   const userSockets = await socketService.getConnectedUserSocketIds(
     req.socketIo,
     userId,

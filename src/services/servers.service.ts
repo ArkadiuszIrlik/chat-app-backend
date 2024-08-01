@@ -409,12 +409,8 @@ async function getChannelSocketIds(server: HydratedDocument<IServer> | string) {
   return channelSockets;
 }
 
-async function getServerSocketId(server: HydratedDocument<IServer> | string) {
-  const serverToCheck = await _getServerFromParam(server);
-
-  const serverSocket = serverToCheck.socketId.toString();
-
-  return serverSocket;
+function getServerSocketId(server: IServer) {
+  return server.socketId.toString();
 }
 
 interface ClientSafeIServer {

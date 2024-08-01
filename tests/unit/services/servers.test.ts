@@ -639,11 +639,11 @@ describe('getChannelSocketIds', () => {
 });
 
 describe('getServerSocketId', () => {
-  it('returns server.socketId as a string', async () => {
+  it('returns server.socketId as a string', () => {
     const mockServerDoc = getServerDocFixture();
     const mockSocketId = mockServerDoc.socketId;
 
-    const returnedValue = await getServerSocketId(mockServerDoc);
+    const returnedValue = getServerSocketId(mockServerDoc);
 
     expect(returnedValue).toBe(mockSocketId.toString());
   });
