@@ -488,7 +488,7 @@ function getClientSafeSubset(
  * @returns map whose keys are socket id's and values are objects containing the
  * associated channelId and serverId
  */
-function mapSocketsToChannels(server: HydratedDocument<IServer>) {
+function mapSocketsToChannels(server: IServer) {
   const map: Map<string, { serverId: string; channelId: string }> = new Map();
   const channelList = getChannelsFromCategories(server.channelCategories);
   channelList.forEach((channel) => {
