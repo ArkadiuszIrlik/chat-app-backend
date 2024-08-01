@@ -3,6 +3,7 @@ import { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
 import * as patchService from '@services/patch.service.js';
 import { UserOnlineStatus } from '@src/typesModule.js';
+import { IServer } from '@models/Server.js';
 
 async function _getUserFromParam(userParam: HydratedDocument<IUser> | string) {
   if (typeof userParam === 'string') {
@@ -228,12 +229,26 @@ async function createUser(userProperties: Partial<IUser>) {
 
 async function getUserServersIn(
   user: HydratedDocument<IUser> | string,
+  {}: { populateServersIn: true },
+): Promise<IServer[]>;
+async function getUserServersIn(
+  user: HydratedDocument<IUser> | string,
+  {}: { populateServersIn?: false },
+): Promise<mongoose.Types.ObjectId[]>;
+async function getUserServersIn(
+  user: HydratedDocument<IUser> | string,
+): Promise<mongoose.Types.ObjectId[]>;
+async function getUserServersIn(
+  user: HydratedDocument<IUser> | string,
   { populateServersIn = false }: { populateServersIn?: boolean } = {},
 ) {
   const userToCheck = await _getUserFromParam(user);
 
   if (populateServersIn && !userToCheck.populated('serversIn')) {
-    await userToCheck.populate('serversIn');
+    const nextUser = await userToCheck.populate<{ serversIn: IServer[] }>(
+      'serversIn',
+    );
+    return nextUser.serversIn;
   }
   return userToCheck.serversIn;
 }
