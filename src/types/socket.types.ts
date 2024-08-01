@@ -1,4 +1,3 @@
-import { IServer } from '@models/Server.js';
 import { IUser } from '@models/User.js';
 import { UserOnlineStatus } from '@src/typesModule.js';
 import mongoose, { HydratedDocument } from 'mongoose';
@@ -96,7 +95,7 @@ interface ClientToServerSocketEvents {
 interface InterServerSocketEvents {}
 
 interface SocketData {
-  user: mongoose.MergeType<HydratedDocument<IUser>, { serversIn: IServer[] }>;
+  user: HydratedDocument<IUser>;
   onlineStatus: UserOnlineStatus;
   channelSocketMap: Map<string, { serverId: string; channelId: string }>;
 }
