@@ -481,6 +481,26 @@ function getClientSafeSubset(
   return clientSubset;
 }
 
+/** Maps every channel's socketId to an object containing channelId and serverId of
+ * the provided server.
+ *
+ * @param server Server doc whose channels to map
+ * @returns map whose keys are socket id's and values are objects containing the
+ * associated channelId and serverId
+ */
+function mapSocketsToChannels(server: HydratedDocument<IServer>) {
+  const map: Map<string, { serverId: string; channelId: string }> = new Map();
+  const channelList = getChannelsFromCategories(server.channelCategories);
+  channelList.forEach((channel) => {
+    map.set(channel.socketId.toString(), {
+      serverId: server._id.toString(),
+      channelId: channel._id.toString(),
+    });
+  });
+
+  return map;
+}
+
 export {
   getServer,
   createServer,
@@ -504,4 +524,5 @@ export {
   ClientSafeIServer,
   ServerAuthLevel,
   getClientSafeSubset,
+  mapSocketsToChannels,
 };
