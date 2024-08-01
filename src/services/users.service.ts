@@ -264,6 +264,18 @@ function getUserRefreshTokens(user: HydratedDocument<IUser>) {
   return user.refreshTokens;
 }
 
+async function setUserRefreshTokens(
+  user: HydratedDocument<IUser>,
+  refreshTokens: IUser['refreshTokens'],
+  { saveDocument = true }: { saveDocument?: boolean } = {},
+) {
+  user.refreshTokens = refreshTokens;
+  if (saveDocument) {
+    await user.save();
+  }
+  return user;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -282,4 +294,5 @@ export {
   addRefreshToken,
   createUser,
   getUserRefreshTokens,
+  setUserRefreshTokens,
 };
