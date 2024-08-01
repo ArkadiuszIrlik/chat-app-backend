@@ -5,6 +5,7 @@ interface TemplateMailOptions extends Mail.Options {
   template?: string;
   text_template?: string;
 }
+
 enum UserOnlineStatus {
   Online = 'ONLINE',
   Away = 'AWAY',
