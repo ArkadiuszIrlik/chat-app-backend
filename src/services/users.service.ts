@@ -245,10 +245,13 @@ async function getUserServersIn(
   const userToCheck = await _getUserFromParam(user);
 
   if (populateServersIn && !userToCheck.populated('serversIn')) {
-    const nextUser = await userToCheck.populate<{ serversIn: IServer[] }>(
+    const populatedUser = await userToCheck.populate<{ serversIn: IServer[] }>(
       'serversIn',
     );
-    return nextUser.serversIn;
+    const populatedServers = populatedUser.serversIn;
+    userToCheck.depopulate('serversIn');
+
+    return populatedServers;
   }
   return userToCheck.serversIn;
 }
