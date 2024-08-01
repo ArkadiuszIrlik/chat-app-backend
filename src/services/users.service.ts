@@ -253,6 +253,10 @@ async function getUserServersIn(
   return userToCheck.serversIn;
 }
 
+function getUserOnlineStatus(user: HydratedDocument<IUser>) {
+  return user.prefersOnlineStatus;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -267,6 +271,7 @@ export {
   getUserId,
   getUserEmail,
   getUserServersIn,
+  getUserOnlineStatus,
   addRefreshToken,
   createUser,
 };
