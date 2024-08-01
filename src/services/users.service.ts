@@ -226,6 +226,18 @@ async function createUser(userProperties: Partial<IUser>) {
   return user;
 }
 
+async function getUserServersIn(
+  user: HydratedDocument<IUser> | string,
+  { populateServersIn = false }: { populateServersIn?: boolean } = {},
+) {
+  const userToCheck = await _getUserFromParam(user);
+
+  if (populateServersIn && !userToCheck.populated('serversIn')) {
+    await userToCheck.populate('serversIn');
+  }
+  return userToCheck.serversIn;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -239,6 +251,7 @@ export {
   getUserPassword,
   getUserId,
   getUserEmail,
+  getUserServersIn,
   addRefreshToken,
   createUser,
 };
