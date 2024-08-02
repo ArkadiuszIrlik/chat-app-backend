@@ -112,6 +112,62 @@ function checkIsValidRefreshToken(
   return isRefreshValid;
 }
 
+function _isPlainObject(obj: unknown): obj is Record<PropertyKey, unknown> {
+  return typeof obj === 'object' && !Array.isArray(obj) && obj !== null;
+}
+/** TypeScript type guard that checks if an object fulfills the
+ * AuthTokenPayload interface. */
+function _isAuthTokenPayload(value: unknown): value is AuthTokenPayload {
+  if (!_isPlainObject(value)) return false;
+
+  const { exp, sub, userId } = value;
+
+  if (typeof exp !== 'number') return false;
+  if (typeof sub !== 'string') return false;
+  if (typeof userId !== 'string') return false;
+
+  const obj = { exp, sub, userId };
+  // @ts-expect-error: turn off "obj is declared but never used."
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const isValid: AuthTokenPayload = obj;
+
+  return true;
+}
+
+interface AuthTokenPayload {
+  exp: number;
+  sub: string;
+  userId: string;
+}
+
+async function decodeAuthToken(token: string) {
+  const decodedToken = await new Promise<AuthTokenPayload>(
+    (resolve, reject) => {
+      if (!process.env.JWT_SECRET) {
+        console.error('Missing JWT_SECRET environment variable');
+        return reject(new Error('Server error'));
+      }
+      jwt.verify(
+        token,
+        process.env.JWT_SECRET,
+        { ignoreExpiration: true },
+        (err, decoded) => {
+          if (err) {
+            return reject(err);
+          }
+          if (_isAuthTokenPayload(decoded)) {
+            return resolve(decoded);
+          } else {
+            return reject(new Error('Invalid payload format'));
+          }
+        },
+      );
+    },
+  );
+
+  return decodedToken;
+}
+
 export {
   hashPassword,
   verifyPasswordMatch,
@@ -121,4 +177,6 @@ export {
   logOutUser,
   setAuthCookies,
   checkIsValidRefreshToken,
+  AuthTokenPayload,
+  decodeAuthToken,
 };
