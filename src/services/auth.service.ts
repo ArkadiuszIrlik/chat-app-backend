@@ -2,11 +2,12 @@ import {
   AUTH_JWT_MAX_AGE,
   REFRESH_TOKEN_MAX_AGE,
 } from '@config/auth.config.js';
-import { IRefreshTokenObject } from '@models/User.js';
+import { IRefreshTokenObject, IUser } from '@models/User.js';
 import argon2 from 'argon2';
 import { Response } from 'express';
 import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
+import * as usersService from '@services/users.service.js';
 
 async function hashPassword(password: string) {
   if (!process.env.PASSWORD_PEPPER) {
@@ -99,6 +100,18 @@ function setAuthCookies(
   ]);
 }
 
+function checkIsValidRefreshToken(
+  token: string,
+  user: HydratedDocument<IUser>,
+) {
+  const userTokenObjects = usersService.getUserRefreshTokens(user);
+  const isRefreshValid = !!userTokenObjects.find(
+    (obj) => obj.token === token && obj.expDate >= new Date(),
+  );
+
+  return isRefreshValid;
+}
+
 export {
   hashPassword,
   verifyPasswordMatch,
@@ -107,4 +120,5 @@ export {
   getTokenFromRefreshTokenObject,
   logOutUser,
   setAuthCookies,
+  checkIsValidRefreshToken,
 };
