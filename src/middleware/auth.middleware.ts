@@ -1,58 +1,48 @@
 import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import User, { IUser } from '@models/User.js';
-import {
-  generateRefreshToken,
-  setAuthCookies,
-  signAuthJwt,
-} from '@helpers/auth.helpers.js';
+import { IUser } from '@models/User.js';
 import { HydratedDocument } from 'mongoose';
+import * as authService from '@services/auth.service.js';
+import * as usersService from '@services/users.service.js';
 
-interface RequestWithSockets extends Request {
-  isSocketRequest?: boolean;
-  _query?: Record<string, any>;
+/** A function meant to mimic the functionality of res.clearCookie method
+ * for SocketIo response objects which can't use it. */
+function _clearCookie(res: Response, names: string | string[]) {
+  let cookieNames: string[];
+  if (typeof names === 'string') {
+    cookieNames = [names];
+  } else {
+    cookieNames = names;
+  }
+  res.setHeader(
+    'Set-Cookie',
+    cookieNames.map(
+      (name) => `${name}=; Path=/; Expires=${new Date(0).toUTCString()}`,
+    ),
+  );
 }
 
-function denyAccess(
-  req: RequestWithSockets,
-  res: Response,
-  next: NextFunction,
-) {
-  function clearCookie(res: Response, names: string | string[]) {
-    let cookieNames: string[];
-    if (typeof names === 'string') {
-      cookieNames = [names];
-    } else {
-      cookieNames = names;
-    }
-    res.setHeader(
-      'Set-Cookie',
-      cookieNames.map(
-        (name) => `${name}=; Path=/; Expires=${new Date(0).toUTCString()}`,
-      ),
-    );
-  }
-
-  clearCookie(res, ['auth', 'refresh']);
-
-  if (req.isSocketRequest) {
+function _denyAccess(req: Request, res: Response, next: NextFunction) {
+  if (req.context.isSocketRequest) {
+    _clearCookie(res, ['auth', 'refresh']);
     return next();
+  } else {
+    return res
+      .clearCookie('auth')
+      .clearCookie('refresh')
+      .setHeader('WWW-Authenticate', 'cookie-token')
+      .status(401)
+      .json({ message: 'Missing valid client credentials' });
   }
-
-  return res
-    .setHeader('WWW-Authenticate', 'cookie-token')
-    .status(401)
-    .json({ message: 'Missing valid client credentials' });
 }
 
 /** Expires provided refresh token, removes expired tokens from DB and
  *  generates and returns a new refresh token object.  */
-
-async function renewRefreshToken(
+async function _renewRefreshToken(
   user: HydratedDocument<IUser>,
   currentToken: string,
 ) {
-  user.refreshTokens = user.refreshTokens.reduce<IUser['refreshTokens']>(
+  const refreshTokens = usersService.getUserRefreshTokens(user);
+  const nextRefreshTokens = refreshTokens.reduce<IUser['refreshTokens']>(
     (arr, el: IUser['refreshTokens'][number]) => {
       if (el.expDate < new Date()) {
         return arr;
@@ -63,7 +53,7 @@ async function renewRefreshToken(
         // requests are sent at the same time and client hasn't received
         // the new token yet. This prevents the extra requests from being
         // denied access.
-        el.expDate = new Date(Date.now() + 10000);
+        el.expDate = new Date(Date.now() + 10 * 1000);
       }
       arr.push(el);
       return arr;
@@ -71,89 +61,73 @@ async function renewRefreshToken(
     [],
   );
 
-  return generateRefreshToken(user);
+  await usersService.setUserRefreshTokens(user, nextRefreshTokens, {
+    saveDocument: false,
+  });
+
+  const nextTokenObject = authService.generateRefreshTokenObject();
+  await usersService.addRefreshToken(user, nextTokenObject, {
+    saveDocument: false,
+  });
+  return nextTokenObject;
 }
 
-export default async function checkAuthExpiry(
-  req: RequestWithSockets,
-  res: Response,
-  next: NextFunction,
-) {
-  if (req.cookies.auth === undefined) {
-    return denyAccess(req, res, next);
+async function verifyAuth(req: Request, res: Response, next: NextFunction) {
+  // req.cookies.auth could probably be replaced with
+  // const authToken = authService.getAuthToken(req)
+  const authToken = req.cookies.auth;
+  if (!authToken) {
+    return _denyAccess(req, res, next);
   }
-  if (req.cookies.auth) {
-    jwt.verify(
-      req.cookies.auth,
-      process.env.JWT_SECRET!,
-      { ignoreExpiration: true },
-      async (err, decoded) => {
-        if (err) {
-          console.error(err.message);
-          return denyAccess(req, res, next);
-        }
-        if (
-          typeof decoded === 'string' ||
-          decoded === undefined ||
-          decoded.exp === undefined ||
-          decoded.sub === undefined
-        ) {
-          return denyAccess(req, res, next);
-        }
-        const isAuthTokenExpired =
-          new Date(Number(decoded.exp) * 1000) < new Date();
-        if (isAuthTokenExpired) {
-          if (req.cookies.refresh) {
-            const user: IUser = await User.findOne({
-              email: decoded.sub,
-            }).exec();
-            const isRefreshValid = !!user.refreshTokens.find(
-              (el) =>
-                el.token === req.cookies.refresh && el.expDate >= new Date(),
-            );
-            if (isRefreshValid) {
-              // renew refresh token
-              const { token: nextRefreshToken } = await renewRefreshToken(
-                user,
-                req.cookies.refresh,
-              );
-
-              // renew auth JWT
-              const encodedJwt = await signAuthJwt(user._id, user.email);
-
-              setAuthCookies(res, encodedJwt, nextRefreshToken);
-
-              if (req.isSocketRequest) {
-                req.context.requestingUser = user;
-              }
-
-              req.decodedAuth = { userId: decoded.userId, email: decoded.sub };
-              return next();
-            } else {
-              return denyAccess(req, res, next);
-            }
-          } else {
-            return denyAccess(req, res, next);
-          }
-        }
-        if (req.isSocketRequest) {
-          const user: IUser = await User.findOne({
-            email: decoded.sub,
-          }).exec();
-          req.context.requestingUser = user;
-        }
-        req.decodedAuth = { userId: decoded.userId, email: decoded.sub };
-        return next();
-      },
-    );
+  const decodedAuthToken = await authService.decodeAuthToken(authToken);
+  const isAuthTokenExpired =
+    new Date(Number(decodedAuthToken.exp) * 1000) < new Date();
+  if (!isAuthTokenExpired) {
+    req.decodedAuth = {
+      userId: decodedAuthToken.userId,
+      email: decodedAuthToken.sub,
+    };
+    return next();
   }
-  if (req.cookies.auth === '') {
-    return denyAccess(req, res, next);
+
+  const refreshToken = req.cookies.refresh;
+  if (!refreshToken) {
+    return _denyAccess(req, res, next);
   }
+  const user = await usersService.getUserByEmail(decodedAuthToken.sub);
+  // DENY ACCESS
+  if (!user) {
+    return _denyAccess(req, res, next);
+  }
+  const isRefreshValid = authService.checkIsValidRefreshToken(
+    refreshToken,
+    user,
+  );
+  if (!isRefreshValid) {
+    return _denyAccess(req, res, next);
+  }
+  // renew refresh token
+  const nextTokenObject = await _renewRefreshToken(user, refreshToken);
+  const nextRefreshToken =
+    authService.getTokenFromRefreshTokenObject(nextTokenObject);
+
+  // renew auth JWT
+  const userId = usersService.getUserId(user);
+  const userEmail = await usersService.getUserEmail(user);
+  const encodedJwt = await authService.signAuthJwt(userId, userEmail);
+
+  authService.setAuthCookies(res, encodedJwt, nextRefreshToken);
+
+  req.context.requestingUser = user;
+  req.decodedAuth = {
+    userId: userId.toString(),
+    email: userEmail,
+  };
+  return next();
 }
 
-export function verifySocketAuth(
-  req: RequestWithSockets,
+function verifySocketHandshakeAuth(
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
@@ -161,6 +135,29 @@ export function verifySocketAuth(
   if (!isHandshake) {
     return next();
   }
-  req.isSocketRequest = true;
-  return checkAuthExpiry(req, res, next);
+  req.context.isSocketRequest = true;
+  return verifyAuth(req, res, next);
 }
+
+async function addRequestingUserToContext(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) {
+  if (req.context.requestingUser) {
+    return next();
+  }
+  const userId = req.decodedAuth?.userId;
+  if (!userId) {
+    console.error('Missing decodedAuth.userId');
+    throw new Error('Missing decodedAuth.userId');
+  }
+  const user = await usersService.getUser(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+  req.context.requestingUser = user;
+  return next();
+}
+
+export { verifyAuth, verifySocketHandshakeAuth, addRequestingUserToContext };
