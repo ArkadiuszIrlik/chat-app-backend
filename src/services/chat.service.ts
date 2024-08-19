@@ -31,6 +31,7 @@ enum ChatMessageAuthLevel {
 }
 
 interface ClientSafeIChatMessage {
+  _id: Types.ObjectId;
   postedAt: Date;
   author: Types.ObjectId;
   text: string;
@@ -39,6 +40,7 @@ interface ClientSafeIChatMessage {
 }
 
 const authorizedAuthProperties = [
+  '_id',
   'postedAt',
   'author',
   'text',
