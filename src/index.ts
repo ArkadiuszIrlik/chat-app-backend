@@ -72,6 +72,7 @@ app.use('/chat', checkAuthExpiry, chatRouter);
 
 app.use(errorHandler({}));
 io.engine.use(initializeContext);
+io.engine.use(initializeSocketRequest);
 io.engine.use(cookieParser());
 
   socket.on('disconnect', (reason) => {
