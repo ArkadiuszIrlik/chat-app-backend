@@ -19,6 +19,7 @@ import {
   SocketData,
   SocketWithAuth,
 } from '@customTypes/socket.types.js';
+import { initializeContext } from '@middleware/context.middleware.js';
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -56,12 +57,7 @@ app.use(
     credentials: true,
   }),
 );
-app.use((req, _res, next) => {
-  if (req.context === undefined) {
-    req.context = {};
-  }
-  return next();
-});
+app.use(initializeContext);
 app.use(
   '/static',
   helmet({ crossOriginResourcePolicy: { policy: 'same-site' } }),
@@ -75,6 +71,7 @@ app.get('/', (_req, res) => {
 app.use('/chat', checkAuthExpiry, chatRouter);
 
 app.use(errorHandler({}));
+io.engine.use(initializeContext);
 io.engine.use(cookieParser());
 
   socket.on('disconnect', (reason) => {
