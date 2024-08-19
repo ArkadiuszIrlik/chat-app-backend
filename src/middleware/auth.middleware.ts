@@ -126,19 +126,6 @@ async function verifyAuth(req: Request, res: Response, next: NextFunction) {
   return next();
 }
 
-function verifySocketHandshakeAuth(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const isHandshake = req._query?.sid === undefined;
-  if (!isHandshake) {
-    return next();
-  }
-  req.context.isSocketRequest = true;
-  return verifyAuth(req, res, next);
-}
-
 async function addRequestingUserToContext(
   req: Request,
   _res: Response,
@@ -160,4 +147,4 @@ async function addRequestingUserToContext(
   return next();
 }
 
-export { verifyAuth, verifySocketHandshakeAuth, addRequestingUserToContext };
+export { verifyAuth, addRequestingUserToContext };
