@@ -6,6 +6,10 @@ import cookieParser from 'cookie-parser';
 import { createServer } from 'node:https';
 import { readFile } from 'fs/promises';
 import { Server } from 'socket.io';
+import {
+  verifyAuth,
+  addRequestingUserToContext,
+} from '@middleware/auth.middleware.js';
 import chatRouter from '@routes/chat.router.js';
 import connectToDb from '@config/db.config.js';
 import cors from 'cors';
@@ -74,6 +78,8 @@ app.use(errorHandler({}));
 io.engine.use(initializeContext);
 io.engine.use(initializeSocketRequest);
 io.engine.use(cookieParser());
+io.engine.use(onHandshake(verifyAuth));
+io.engine.use(onHandshake(addRequestingUserToContext));
 
   socket.on('disconnect', (reason) => {
     console.log(`disconnected due to ${reason}`);
