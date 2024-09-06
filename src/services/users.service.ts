@@ -220,6 +220,17 @@ async function addRefreshToken(
   return userToModify;
 }
 
+async function removeRefreshToken(
+  user: HydratedDocument<IUser>,
+  refreshToken: string,
+) {
+  user.refreshTokens = user.refreshTokens.filter(
+    (el) => el.token !== refreshToken,
+  );
+
+  return user;
+}
+
 async function createUser(userProperties: Partial<IUser>) {
   const user = new User(userProperties);
   await user.save();
@@ -292,6 +303,7 @@ export {
   getUserServersIn,
   getUserOnlineStatus,
   addRefreshToken,
+  removeRefreshToken,
   createUser,
   getUserRefreshTokens,
   setUserRefreshTokens,
