@@ -1,6 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { IUser } from '@models/User.js';
-import { HydratedDocument } from 'mongoose';
 import * as authService from '@services/auth.service.js';
 import * as usersService from '@services/users.service.js';
 
@@ -35,51 +33,17 @@ function _denyAccess(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-/** Expires provided refresh token, removes expired tokens from DB and
- *  generates and returns a new refresh token object.  */
-async function _renewRefreshToken(
-  user: HydratedDocument<IUser>,
-  currentToken: string,
-) {
-  const refreshTokens = usersService.getUserRefreshTokens(user);
-  const nextRefreshTokens = refreshTokens.reduce<IUser['refreshTokens']>(
-    (arr, el: IUser['refreshTokens'][number]) => {
-      if (el.expDate < new Date()) {
-        return arr;
-      }
-      if (el.token === currentToken) {
-        // Instead of removing the current token outright, its expiry is
-        // changed to 10 seconds from now. This is done in case multiple
-        // requests are sent at the same time and client hasn't received
-        // the new token yet. This prevents the extra requests from being
-        // denied access.
-        el.expDate = new Date(Date.now() + 10 * 1000);
-      }
-      arr.push(el);
-      return arr;
-    },
-    [],
-  );
-
-  await usersService.setUserRefreshTokens(user, nextRefreshTokens, {
-    saveDocument: false,
-  });
-
-  const nextTokenObject = authService.generateRefreshTokenObject();
-  await usersService.addRefreshToken(user, nextTokenObject, {
-    saveDocument: false,
-  });
-  return nextTokenObject;
-}
-
 async function verifyAuth(req: Request, res: Response, next: NextFunction) {
-  // req.cookies.auth could probably be replaced with
-  // const authToken = authService.getAuthToken(req)
   const authToken = req.cookies.auth;
   if (!authToken) {
     return _denyAccess(req, res, next);
   }
-  const decodedAuthToken = await authService.decodeAuthToken(authToken);
+  let decodedAuthToken: authService.AuthTokenPayload;
+  try {
+    decodedAuthToken = await authService.decodeAuthToken(authToken);
+  } catch {
+    return _denyAccess(req, res, next);
+  }
   const isAuthTokenExpired =
     new Date(Number(decodedAuthToken.exp) * 1000) < new Date();
   if (!isAuthTokenExpired) {
@@ -95,10 +59,22 @@ async function verifyAuth(req: Request, res: Response, next: NextFunction) {
     return _denyAccess(req, res, next);
   }
   const user = await usersService.getUserByEmail(decodedAuthToken.sub);
-  // DENY ACCESS
   if (!user) {
     return _denyAccess(req, res, next);
   }
+
+  const isRefreshLocked = authService.checkRefreshTokenHasLock(refreshToken);
+  if (isRefreshLocked) {
+    const userId = usersService.getUserId(user);
+    const userEmail = await usersService.getUserEmail(user);
+    req.context.requestingUser = user;
+    req.decodedAuth = {
+      userId: userId.toString(),
+      email: userEmail,
+    };
+    return next();
+  }
+
   const isRefreshValid = authService.checkIsValidRefreshToken(
     refreshToken,
     user,
@@ -106,8 +82,13 @@ async function verifyAuth(req: Request, res: Response, next: NextFunction) {
   if (!isRefreshValid) {
     return _denyAccess(req, res, next);
   }
+  authService.addRefreshLock(refreshToken);
+
   // renew refresh token
-  const nextTokenObject = await _renewRefreshToken(user, refreshToken);
+  const nextTokenObject = await authService.renewRefreshToken(
+    refreshToken,
+    user,
+  );
   const nextRefreshToken =
     authService.getTokenFromRefreshTokenObject(nextTokenObject);
 
@@ -115,6 +96,8 @@ async function verifyAuth(req: Request, res: Response, next: NextFunction) {
   const userId = usersService.getUserId(user);
   const userEmail = await usersService.getUserEmail(user);
   const encodedJwt = await authService.signAuthJwt(userId, userEmail);
+
+  await user.save();
 
   authService.setAuthCookies(res, encodedJwt, nextRefreshToken);
 
