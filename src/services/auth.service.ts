@@ -1,5 +1,6 @@
 import {
   AUTH_JWT_MAX_AGE,
+  REFRESH_TOKEN_LOCK_TTL,
   REFRESH_TOKEN_MAX_AGE,
 } from '@config/auth.config.js';
 import { IRefreshTokenObject, IUser } from '@models/User.js';
@@ -8,6 +9,7 @@ import { Response } from 'express';
 import jwt from 'jsonwebtoken';
 import mongoose, { HydratedDocument } from 'mongoose';
 import * as usersService from '@services/users.service.js';
+import NodeCache from 'node-cache';
 
 async function hashPassword(password: string) {
   if (!process.env.PASSWORD_PEPPER) {
@@ -168,6 +170,28 @@ async function decodeAuthToken(token: string) {
   return decodedToken;
 }
 
+let refreshLockCache: NodeCache;
+
+function initializeRefreshLockCache() {
+  refreshLockCache = new NodeCache({ stdTTL: REFRESH_TOKEN_LOCK_TTL });
+}
+
+function addRefreshLock(refreshToken: string) {
+  if (!refreshLockCache) {
+    console.error('Refresh token lock cache not found');
+    throw new Error('Refresh token lock cache not found');
+  }
+  return refreshLockCache.set(refreshToken, true);
+}
+
+function checkRefreshTokenHasLock(refreshToken: string) {
+  if (!refreshLockCache) {
+    console.error('Refresh token lock cache not found');
+    throw new Error('Refresh token lock cache not found');
+  }
+  return refreshLockCache.has(refreshToken);
+}
+
 export {
   hashPassword,
   verifyPasswordMatch,
@@ -179,4 +203,7 @@ export {
   checkIsValidRefreshToken,
   AuthTokenPayload,
   decodeAuthToken,
+  initializeRefreshLockCache,
+  addRefreshLock,
+  checkRefreshTokenHasLock,
 };
