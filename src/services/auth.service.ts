@@ -192,6 +192,22 @@ function checkRefreshTokenHasLock(refreshToken: string) {
   return refreshLockCache.has(refreshToken);
 }
 
+/** Expires provided currentToken and generates and returns new
+ * refresh token object. */
+async function renewRefreshToken(
+  currentToken: string,
+  user: HydratedDocument<IUser>,
+  { saveDocument = false }: { saveDocument?: boolean } = {},
+) {
+  usersService.removeRefreshToken(user, currentToken);
+  const nextTokenObject = generateRefreshTokenObject();
+  await usersService.addRefreshToken(user, nextTokenObject, {
+    saveDocument,
+  });
+
+  return nextTokenObject;
+}
+
 export {
   hashPassword,
   verifyPasswordMatch,
@@ -206,4 +222,5 @@ export {
   initializeRefreshLockCache,
   addRefreshLock,
   checkRefreshTokenHasLock,
+  renewRefreshToken,
 };
