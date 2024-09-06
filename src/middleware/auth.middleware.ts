@@ -136,8 +136,7 @@ async function addRequestingUserToContext(
   }
   const userId = req.decodedAuth?.userId;
   if (!userId) {
-    console.error('Missing decodedAuth.userId');
-    throw new Error('Missing decodedAuth.userId');
+    return next();
   }
   const user = await usersService.getUser(userId);
   if (!user) {
