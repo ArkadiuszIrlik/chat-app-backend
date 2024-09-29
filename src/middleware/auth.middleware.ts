@@ -99,7 +99,7 @@ async function verifyAuth(req: Request, res: Response, next: NextFunction) {
 
   await user.save();
 
-  authService.setAuthCookies(res, encodedJwt, nextRefreshToken);
+  authService.setAuthRefreshCookies(res, encodedJwt, nextRefreshToken);
 
   req.context.requestingUser = user;
   req.decodedAuth = {

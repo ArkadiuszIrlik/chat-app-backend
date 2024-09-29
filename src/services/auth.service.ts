@@ -5,11 +5,12 @@ import {
 } from '@config/auth.config.js';
 import { IRefreshTokenObject, IUser } from '@models/User.js';
 import argon2 from 'argon2';
-import { Response } from 'express';
+import { CookieOptions, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import mongoose, { HydratedDocument } from 'mongoose';
 import * as usersService from '@services/users.service.js';
 import NodeCache from 'node-cache';
+import cookie from 'cookie';
 
 async function hashPassword(password: string) {
   if (!process.env.PASSWORD_PEPPER) {
@@ -82,23 +83,57 @@ function logOutUser(res: Response) {
   return res.clearCookie('auth').clearCookie('refresh');
 }
 
-/** Sets both "auth" and "refresh" cookie on response object.
+const authCookieOptions: CookieOptions = {
+  // auth cookie should stay alive longer than the actual
+  // JWT stays valid. This allows the app to use the "subject"
+  // claim to match the refresh token with the correct user
+  // in the DB
+  maxAge: REFRESH_TOKEN_MAX_AGE, // ms
+  secure: true,
+  path: '/',
+  httpOnly: true,
+  sameSite: 'lax',
+};
+
+const refreshCookieOptions: CookieOptions = {
+  maxAge: REFRESH_TOKEN_MAX_AGE, // ms
+  secure: true,
+  path: '/',
+  httpOnly: true,
+  sameSite: 'lax',
+};
+
+function setAuthCookie(res: Response, authToken: string) {
+  return res.cookie('auth', authToken, authCookieOptions);
+}
+
+function setRefreshCookie(res: Response, refreshToken: string) {
+  return res.cookie('refresh', refreshToken, refreshCookieOptions);
+}
+
+/** Sets both "auth" and "refresh" cookie on response object. This will overwrite the
+ * current value of the 'Set-Cookie' response header.
  *
  * Use this when res.cookie method isn't available, e.g. when working with Socket.IO middleware.
  */
-function setAuthCookies(
+function setAuthRefreshCookies(
   res: Response,
   authToken: string,
   refreshToken: string,
 ) {
-  const cookieParams = `Max-Age=${
-    REFRESH_TOKEN_MAX_AGE / 1000
-  }; Path=/; Expires=${new Date(
-    Date.now() + REFRESH_TOKEN_MAX_AGE,
-  ).toUTCString()}; HttpOnly; Secure; SameSite=Lax`;
-  res.setHeader('Set-Cookie', [
-    `auth=${authToken}; ${cookieParams}`,
-    `refresh=${refreshToken}; ${cookieParams}`,
+  // HTTP cookie expects maxAge to be given in seconds, while
+  // express res.cookie maxAge option uses miliseconds
+  const fixedAuthOptions = { ...authCookieOptions };
+  if (fixedAuthOptions.maxAge) {
+    fixedAuthOptions.maxAge /= 1000;
+  }
+  const fixedRefreshOptions = { ...refreshCookieOptions };
+  if (fixedRefreshOptions.maxAge) {
+    fixedRefreshOptions.maxAge /= 1000;
+  }
+  return res.setHeader('Set-Cookie', [
+    cookie.serialize('auth', authToken, fixedAuthOptions),
+    cookie.serialize('refresh', refreshToken, fixedRefreshOptions),
   ]);
 }
 
@@ -138,7 +173,7 @@ function _isAuthTokenPayload(value: unknown): value is AuthTokenPayload {
 
 interface AuthTokenPayload {
   exp: number;
-  sub: string;
+  sub: string; //email
   userId: string;
 }
 
@@ -215,7 +250,9 @@ export {
   generateRefreshTokenObject,
   getTokenFromRefreshTokenObject,
   logOutUser,
-  setAuthCookies,
+  setAuthCookie,
+  setRefreshCookie,
+  setAuthRefreshCookies,
   checkIsValidRefreshToken,
   AuthTokenPayload,
   decodeAuthToken,
