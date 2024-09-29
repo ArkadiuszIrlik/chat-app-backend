@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { signAuthJwt } from '@helpers/auth.helpers.js';
 import * as authService from '@services/auth.service.js';
 import * as usersService from '@services/users.service.js';
 import * as mailService from '@services/mail.service.js';
@@ -68,7 +67,7 @@ export async function logInUser(req: Request, res: Response) {
 
   const userId = usersService.getUserId(user);
   const userEmail = await usersService.getUserEmail(user);
-  const authToken = await signAuthJwt(userId, userEmail);
+  const authToken = await authService.signAuthJwt(userId, userEmail);
   authService.setAuthCookie(res, authToken);
 
   const refreshTokenObject = authService.generateRefreshTokenObject();

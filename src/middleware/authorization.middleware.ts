@@ -1,8 +1,8 @@
-import { getDecodedAuthFromJwt } from '@helpers/auth.helpers.js';
 import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import * as usersService from '@services/users.service.js';
 import * as serversService from '@services/servers.service.js';
+import * as authService from '@services/auth.service.js';
 
 enum AuthRole {
   ServerOwner = 'SERVER_OWNER',
@@ -26,18 +26,25 @@ async function _getAccessedServer(req: Request) {
   }
 }
 
-function _getRequestingUserId(req: Request) {
+async function _getRequestingUserId(req: Request) {
   let userId: string | null = null;
   if (req.context.requestingUser) {
     userId = usersService.getUserId(req.context.requestingUser).toString();
   } else if (req.decodedAuth) {
     userId = req.decodedAuth.userId;
   } else {
-    const decodedAuth = getDecodedAuthFromJwt(req.cookies.auth ?? '');
-    if (decodedAuth) {
-      req.decodedAuth = decodedAuth;
-      userId = decodedAuth.userId;
-    }
+    try {
+      const decodedAuth = await authService.decodeAuthToken(
+        req.cookies.auth ?? '',
+      );
+      if (decodedAuth) {
+        req.decodedAuth = {
+          email: decodedAuth.sub,
+          userId: decodedAuth.userId,
+        };
+        userId = decodedAuth.userId;
+      }
+    } catch {}
   }
   return userId;
 }
@@ -56,7 +63,7 @@ function restrictAccess(roleArray: AuthRole[]) {
             return false;
           }
 
-          const userId = _getRequestingUserId(req);
+          const userId = await _getRequestingUserId(req);
           if (!userId) {
             return false;
           }
@@ -74,7 +81,7 @@ function restrictAccess(roleArray: AuthRole[]) {
             return false;
           }
 
-          const userId = _getRequestingUserId(req);
+          const userId = await _getRequestingUserId(req);
           if (!userId) {
             return false;
           }
@@ -93,7 +100,7 @@ function restrictAccess(roleArray: AuthRole[]) {
             return false;
           }
 
-          const userId = _getRequestingUserId(req);
+          const userId = await _getRequestingUserId(req);
           if (!userId) {
             return false;
           }
