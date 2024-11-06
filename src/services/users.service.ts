@@ -287,6 +287,10 @@ async function setUserRefreshTokens(
   return user;
 }
 
+function generateDeviceId() {
+  return crypto.randomUUID();
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -307,4 +311,5 @@ export {
   createUser,
   getUserRefreshTokens,
   setUserRefreshTokens,
+  generateDeviceId,
 };

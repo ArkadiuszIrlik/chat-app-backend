@@ -10,6 +10,7 @@ declare global {
       decodedAuth?: {
         userId: string;
         email: string;
+        deviceId: string;
       };
       context: {
         requestingUser?: HydratedDocument<IUser>;

@@ -2,6 +2,7 @@ import mongoose, { Schema, Types } from 'mongoose';
 
 export interface IRefreshTokenObject {
   token: string;
+  deviceId: string;
   expDate: Date;
 }
   email: string;
@@ -15,19 +16,10 @@ export interface IRefreshTokenObject {
 }
 
 const UserSchema = new mongoose.Schema<IUser>({
-  email: String,
-  password: String,
-  username: String,
-  profileImg: String,
-  serversMember: [{ type: Schema.Types.ObjectId, ref: 'Server' }],
-  chatsMember: [
-    {
-      userId: { type: Schema.Types.ObjectId, ref: 'User' },
-      chatId: { type: Schema.Types.ObjectId, ref: 'Chat' },
-    },
-  ],
-  friends: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-  refreshTokens: [{ token: String, expDate: Date }],
+  refreshTokens: {
+    type: [{ token: String, deviceId: String, expDate: Date }],
+    default: [],
+  },
 });
 
 export default mongoose.models.User ||

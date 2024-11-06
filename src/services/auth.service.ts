@@ -39,14 +39,18 @@ function verifyPasswordMatch(hashedPassword: string, plainPassword: string) {
   });
 }
 
-function signAuthJwt(userId: mongoose.Types.ObjectId | string, email: string) {
+function signAuthJwt(
+  userId: mongoose.Types.ObjectId | string,
+  email: string,
+  deviceId: string,
+) {
   return new Promise<string>((resolve, reject) => {
     if (!process.env.JWT_SECRET) {
       console.error('JWT_SECRET environment variable missing');
       return reject('Server error');
     }
     jwt.sign(
-      { userId },
+      { userId, deviceId },
       process.env.JWT_SECRET,
       {
         expiresIn: `${AUTH_JWT_MAX_AGE}ms`,
@@ -63,10 +67,11 @@ function signAuthJwt(userId: mongoose.Types.ObjectId | string, email: string) {
   });
 }
 
-function generateRefreshTokenObject() {
+function generateRefreshTokenObject(deviceId: string) {
   const token = crypto.randomUUID();
   const refreshTokenObj: IRefreshTokenObject = {
     token,
+    deviceId,
     expDate: new Date(Date.now() + REFRESH_TOKEN_MAX_AGE),
   };
 
@@ -175,6 +180,7 @@ interface AuthTokenPayload {
   exp: number;
   sub: string; //email
   userId: string;
+  deviceId: string;
 }
 
 async function decodeAuthToken(token: string) {
