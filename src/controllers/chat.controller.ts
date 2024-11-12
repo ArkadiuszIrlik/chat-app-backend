@@ -25,33 +25,32 @@ export async function getMessages(req: Request, res: Response) {
   }
 
   const isServerMessage = chatService.checkIfIsServerMessage(messages[0]);
-  if (isServerMessage) {
-    // assert as not undefined because of the isServerMessage check
-    const serverId = chatService.getMessageServerId(messages[0])!;
-
-    const isUserInServer = await usersService.checkIfIsInServer(
-      user,
-      serverId.toString(),
-    );
-
-    if (!isUserInServer) {
-      return res
-        .status(403)
-        .json({ message: 'Unauthorized to access messages' });
-    }
-
-    const clientSafeMessages = messages.map((message) =>
-      chatService.getClientSafeSubset(
-        message,
-        chatService.ChatMessageAuthLevel.Authorized,
-      ),
-    );
-
-    return res.status(200).json({
-      message: 'Messages returned',
-      data: { messages: clientSafeMessages },
-    });
-  } else {
+  if (!isServerMessage) {
     return res.status(404).json({ message: 'Invalid message format' });
   }
+  // assert as not undefined because of the isServerMessage check
+  const serverId = chatService.getMessageServerId(messages[0])!;
+
+  const isUserInServer = await usersService.checkIfIsInServer(
+    user,
+    serverId.toString(),
+  );
+
+  if (!isUserInServer) {
+    return res.status(403).json({ message: 'Unauthorized to access messages' });
+  }
+
+  const clientSafeMessages = messages.map((message) =>
+    chatService.getClientSafeSubset(
+      message,
+      chatService.ChatMessageAuthLevel.Authorized,
+    ),
+  );
+
+  return res.status(200).json({
+    message: 'Messages returned',
+    data: {
+      messages: clientSafeMessages,
+    },
+  });
 }
