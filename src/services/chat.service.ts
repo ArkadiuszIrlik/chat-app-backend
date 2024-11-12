@@ -16,6 +16,40 @@ function getMessages(
   }
 }
 
+async function getMessagesWithCursor(
+  chatId: string,
+  limit = 20,
+  cursor: Date | null,
+  { populateAuthor = false }: { populateAuthor?: boolean } = {},
+) {
+  let safeLimit = limit;
+  if (limit < 1) {
+    safeLimit = 20;
+  }
+  if (limit > 50) {
+    safeLimit = 50;
+  }
+  const filter: Record<string, any> = { chatId };
+  if (cursor) {
+    filter.postedAt = { $lte: cursor };
+  }
+
+  let query = ChatMessage.find(filter)
+    .sort({ postedAt: -1 })
+    .limit(safeLimit + 1);
+  if (populateAuthor) {
+    query = query.populate('author', 'username profileImg');
+  }
+  const result = await query.exec();
+  let previousCursor = null;
+  if (result.length > safeLimit) {
+    previousCursor = result[safeLimit].postedAt;
+  }
+  const messages = result.slice(0, safeLimit);
+
+  return { messages, previousCursor };
+}
+
 function checkIfIsServerMessage(message: HydratedDocument<IChatMessage>) {
   const isServerMessage = !!message.serverId;
 
@@ -92,6 +126,7 @@ function getClientSafeSubset(
 
 export {
   getMessages,
+  getMessagesWithCursor,
   checkIfIsServerMessage,
   getMessageServerId,
   getClientSafeSubset,
