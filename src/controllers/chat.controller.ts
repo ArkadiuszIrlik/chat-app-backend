@@ -4,6 +4,9 @@ import * as chatService from '@services/chat.service.js';
 
 export async function getMessages(req: Request, res: Response) {
   const chatId = req.params.chatId;
+  // checked by validation middleware
+  const limit = req.query.limit as number | undefined;
+  const cursor = req.query.cursor as Date | undefined;
 
   const accessingUserId = req.decodedAuth?.userId;
   if (!accessingUserId) {
@@ -15,9 +18,13 @@ export async function getMessages(req: Request, res: Response) {
     return res.status(404).json({ message: 'User not found' });
   }
 
-  const messages = await chatService.getMessages(chatId, {
-    populateAuthor: true,
-  });
+  const searchResult = await chatService.getMessagesWithCursor(
+    chatId,
+    limit,
+    cursor ?? null,
+    { populateAuthor: true },
+  );
+  const messages = searchResult.messages;
 
   // No messages found
   if (messages.length === 0) {
@@ -51,6 +58,7 @@ export async function getMessages(req: Request, res: Response) {
     message: 'Messages returned',
     data: {
       messages: clientSafeMessages,
+      previousCursor: searchResult.previousCursor,
     },
   });
 }
