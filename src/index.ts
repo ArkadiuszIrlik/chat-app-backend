@@ -24,6 +24,21 @@ import {
   SocketWithAuth,
 } from '@customTypes/socket.types.js';
 import { initializeContext } from '@middleware/context.middleware.js';
+let key: Buffer, cert: Buffer;
+switch (true) {
+  case process.env.NODE_ENV === 'development':
+    key = await readFile('./localhost-key.pem');
+    cert = await readFile('./localhost.pem');
+    break;
+  case process.env.NODE_ENV === 'dev-remote':
+    key = await readFile('./key.pem');
+    cert = await readFile('./cert.pem');
+    break;
+  default:
+    key = await readFile('./localhost-key.pem');
+    cert = await readFile('./localhost.pem');
+    break;
+}
 
 const PORT = process.env.PORT || 3000;
 const app = express();

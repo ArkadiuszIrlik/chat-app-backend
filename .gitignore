@@ -3,7 +3,10 @@ dist/
 .env
 .env.production
 .env.development
+.env.dev-remote
 .env.test
 
 localhost-key.pem
 localhost.pem
+key.pem
+cert.pem
