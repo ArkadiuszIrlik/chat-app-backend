@@ -1,5 +1,34 @@
 import ChatMessage, { IChatMessage } from '@models/ChatMessage.js';
 import { HydratedDocument, Types } from 'mongoose';
+import { IUser } from '@models/User.js';
+
+interface PopulatedAuthor {
+  author: {
+    username: IUser['username'];
+    profileImg: IUser['profileImg'];
+  };
+}
+
+function getMessageById(
+  messageId: string,
+  { populateAuthor = false }: { populateAuthor?: boolean } = {},
+) {
+  let query = ChatMessage.findOne({ _id: messageId });
+
+  const populatedAuthorQuery = query.populate<PopulatedAuthor>(
+    'author',
+    'username profileImg',
+  );
+  let finalQuery: typeof query | typeof populatedAuthorQuery;
+
+  if (populateAuthor) {
+    finalQuery = populatedAuthorQuery;
+  } else {
+    finalQuery = query;
+  }
+
+  return finalQuery.exec();
+}
 
 function getMessages(
   chatId: string,
@@ -125,6 +154,7 @@ function getClientSafeSubset(
 }
 
 export {
+  getMessageById,
   getMessages,
   getMessagesWithCursor,
   checkIfIsServerMessage,
