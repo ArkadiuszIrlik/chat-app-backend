@@ -497,6 +497,10 @@ function mapSocketsToChannels(server: IServer) {
   return map;
 }
 
+function getOwnerId(server: Pick<IServer, 'ownerId'>) {
+  return server.ownerId._id;
+}
+
 export {
   getServer,
   createServer,
@@ -521,4 +525,5 @@ export {
   ServerAuthLevel,
   getClientSafeSubset,
   mapSocketsToChannels,
+  getOwnerId,
 };
