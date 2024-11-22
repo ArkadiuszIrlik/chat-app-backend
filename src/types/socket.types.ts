@@ -5,6 +5,7 @@ import { Server, Socket } from 'socket.io';
 
 enum SocketEvents {
   ChatMessage = 'chat message',
+  ChatMessageDeleted = 'chat message deleted',
   GetOnlineStatus = 'get online status',
   AuthenticationError = 'authentication error',
   SendChatMessage = 'send chat message',
@@ -35,6 +36,10 @@ interface SocketChatMessage {
 
 interface ServerToClientSocketEvents {
   [SocketEvents.ChatMessage]: (message: SocketChatMessage) => void;
+  [SocketEvents.ChatMessageDeleted]: (
+    message: SocketChatMessage,
+    chatId: string,
+  ) => void;
   [SocketEvents.AuthenticationError]: (error: string) => void;
   [SocketEvents.OnlineStatusChanged]: (
     userId: string,
@@ -128,4 +133,5 @@ export {
   SocketEvents,
   SocketServer,
   SocketWithAuth,
+  SocketChatMessage,
 };

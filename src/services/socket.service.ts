@@ -1,4 +1,8 @@
-import { SocketEvents, SocketServer } from '@customTypes/socket.types.js';
+import {
+  SocketChatMessage,
+  SocketEvents,
+  SocketServer,
+} from '@customTypes/socket.types.js';
 import { IServer } from '@models/Server.js';
 import { IUser } from '@models/User.js';
 import { HydratedDocument, Types } from 'mongoose';
@@ -17,6 +21,17 @@ function emitUserJoinedServer(
     },
     server._id.toString(),
   );
+}
+
+function emitChatMessageDeleted(
+  socketIo: SocketServer,
+  message: SocketChatMessage,
+  chatId: string,
+  roomIds: string | string[],
+) {
+  return socketIo
+    .to(roomIds)
+    .emit(SocketEvents.ChatMessageDeleted, message, chatId);
 }
 
 function emitServerUpdated(
@@ -120,4 +135,5 @@ export {
   getConnectedUserSockets,
   getRoomsUserIsIn,
   emitUserUpdated,
+  emitChatMessageDeleted,
 };
