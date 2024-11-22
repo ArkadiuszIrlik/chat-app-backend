@@ -12,6 +12,19 @@ interface PopulatedAuthor {
 
 function getMessageById(
   messageId: string,
+  { populateAuthor }: { populateAuthor: true },
+): Promise<
+  (Omit<HydratedDocument<IChatMessage>, 'author'> & PopulatedAuthor) | null
+>;
+function getMessageById(
+  messageId: string,
+  { populateAuthor }: { populateAuthor?: false },
+): Promise<HydratedDocument<IChatMessage> | null>;
+function getMessageById(
+  messageId: string,
+): Promise<HydratedDocument<IChatMessage> | null>;
+function getMessageById(
+  messageId: string,
   { populateAuthor = false }: { populateAuthor?: boolean } = {},
 ) {
   let query = ChatMessage.findOne({ _id: messageId });
@@ -80,14 +93,19 @@ async function getMessagesWithCursor(
   return { messages, previousCursor };
 }
 
-function checkIfIsServerMessage(message: HydratedDocument<IChatMessage>) {
+function checkIfIsServerMessage(
+  message: HydratedDocument<Pick<IChatMessage, 'serverId'>>,
+) {
   const isServerMessage = !!message.serverId;
 
   return isServerMessage;
 }
 
-function getMessageServerId(message: HydratedDocument<IChatMessage>) {
-  return message.serverId;
+function getMessageServerId(
+  message: HydratedDocument<Pick<IChatMessage, 'serverId'>>,
+) {
+  return message.serverId?._id;
+}
 }
 
 enum ChatMessageAuthLevel {
