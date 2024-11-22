@@ -106,6 +106,13 @@ function getMessageServerId(
 ) {
   return message.serverId?._id;
 }
+
+function getMessageAuthorId(
+  message:
+    | HydratedDocument<IChatMessage>
+    | (Omit<HydratedDocument<IChatMessage>, 'author'> & PopulatedAuthor),
+) {
+  return message.author._id;
 }
 
 enum ChatMessageAuthLevel {
@@ -178,6 +185,7 @@ export {
   getMessagesWithCursor,
   checkIfIsServerMessage,
   getMessageServerId,
+  getMessageAuthorId,
   getClientSafeSubset,
   ChatMessageAuthLevel,
 };
