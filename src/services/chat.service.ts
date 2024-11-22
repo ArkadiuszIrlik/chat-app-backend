@@ -93,6 +93,10 @@ async function getMessagesWithCursor(
   return { messages, previousCursor };
 }
 
+function deleteMessage(messageId: string) {
+  return ChatMessage.deleteOne({ _id: messageId }).exec();
+}
+
 function checkIfIsServerMessage(
   message: HydratedDocument<Pick<IChatMessage, 'serverId'>>,
 ) {
@@ -183,6 +187,7 @@ export {
   getMessageById,
   getMessages,
   getMessagesWithCursor,
+  deleteMessage,
   checkIfIsServerMessage,
   getMessageServerId,
   getMessageAuthorId,
