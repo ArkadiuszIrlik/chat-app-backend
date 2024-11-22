@@ -4,6 +4,7 @@ import { IUser } from '@models/User.js';
 
 interface PopulatedAuthor {
   author: {
+    _id: Types.ObjectId;
     username: IUser['username'];
     profileImg: IUser['profileImg'];
   };
