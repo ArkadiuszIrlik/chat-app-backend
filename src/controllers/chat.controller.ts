@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import * as usersService from '@services/users.service.js';
 import * as chatService from '@services/chat.service.js';
+import * as serversService from '@services/servers.service.js';
+import * as socketService from '@services/socket.service.js';
 
 export async function getMessages(req: Request, res: Response) {
   const chatId = req.params.chatId;
@@ -61,4 +63,73 @@ export async function getMessages(req: Request, res: Response) {
       previousCursor: searchResult.previousCursor,
     },
   });
+}
+
+export async function deleteMessage(req: Request, res: Response) {
+  const chatId = req.params.chatId;
+  const messageId = req.params.messageId;
+
+  const accessingUserId = req.decodedAuth?.userId;
+  if (!accessingUserId) {
+    return res.status(401).json({ message: 'Missing user credentials' });
+  }
+  const userPromise = usersService.getUser(accessingUserId);
+
+  const message = await chatService.getMessageById(messageId, {
+    populateAuthor: true,
+  });
+
+  if (!message) {
+    return res.status(204);
+  }
+
+  const user = await userPromise;
+  if (user === null) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  const isUserAuthor = chatService
+    .getMessageAuthorId(message)
+    .equals(usersService.getUserId(user));
+
+  const isServerMessage = chatService.checkIfIsServerMessage(message);
+  let server: Awaited<ReturnType<typeof serversService.getServer>> | null =
+    null;
+
+  if (isServerMessage) {
+    // safe assertion because of check above
+    const serverId = chatService.getMessageServerId(message)!;
+    server = await serversService.getServer(serverId.toString());
+  }
+
+  const isUserServerOwner =
+    server && serversService.getOwnerId(server).equals(accessingUserId);
+  if (!isUserAuthor && isServerMessage && !isUserServerOwner) {
+    return res.status(403).json({ message: 'Not allowed to delete message' });
+  }
+
+  if (!isServerMessage) {
+    return res.status(500).json({ message: 'Invalid message format' });
+  }
+  if (!server) {
+    return res.status(500).json({ message: 'Invalid data' });
+  }
+  // chatId is equal to channelId in server messages
+  const channelSocketId = await serversService.getChannelSocketId(
+    server,
+    chatId,
+  );
+  if (!channelSocketId) {
+    return res.status(500).json({ message: 'Invalid data' });
+  }
+
+  await chatService.deleteMessage(messageId);
+  socketService.emitChatMessageDeleted(
+    req.socketIo,
+    message.toJSON({ getters: true }),
+    chatId,
+    channelSocketId,
+  );
+
+  return res.status(200).json({ message: 'Message deleted' });
 }
