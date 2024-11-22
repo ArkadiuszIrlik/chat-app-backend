@@ -1,5 +1,5 @@
 import express from 'express';
-import { getMessages } from '@controllers/chat.controller.js';
+import { deleteMessage, getMessages } from '@controllers/chat.controller.js';
 import { validate } from '@middleware/validation.middleware.js';
 import { ExtendedYup } from '@src/extendedYup.js';
 
@@ -19,6 +19,17 @@ router.get(
     },
   }),
   getMessages,
+);
+
+router.delete(
+  '/:chatId/messages/:messageId',
+  validate({
+    params: {
+      chatId: ExtendedYup.string().mongooseId().required(),
+      messageId: ExtendedYup.string().mongooseId().required(),
+    },
+  }),
+  deleteMessage,
 );
 
 export default router;
