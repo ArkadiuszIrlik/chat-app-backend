@@ -45,9 +45,14 @@ async function checkIfTempUserExpired(
   return isExpired;
 }
 
+function getUserByEmail(email: string) {
+  return TempUser.findOne({ email }).exec();
+}
+
 export {
   createTempUser,
   getTempUserVerificationToken,
   getTempUserFromToken,
   checkIfTempUserExpired,
+  getUserByEmail,
 };
