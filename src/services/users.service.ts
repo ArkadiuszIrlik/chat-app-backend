@@ -323,6 +323,16 @@ function createProfileImg(
   return nextProfileImg;
 }
 
+function getUserUploadedProfileImg(
+  user: Pick<HydratedDocument<IUser>, 'profileImg'>,
+) {
+  if (user.profileImg?.isPreset === false) {
+    return user.profileImg.uploadedImage;
+  } else {
+    return undefined;
+  }
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -345,4 +355,5 @@ export {
   setUserRefreshTokens,
   generateDeviceId,
   createProfileImg,
+  getUserUploadedProfileImg,
 };
