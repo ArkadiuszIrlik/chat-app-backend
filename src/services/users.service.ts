@@ -1,8 +1,8 @@
-import User, { IRefreshTokenObject, IUser } from '@models/User.js';
+import User, { IRefreshTokenObject, IUser, ProfileImg } from '@models/User.js';
 import { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
 import * as patchService from '@services/patch.service.js';
-import { UserOnlineStatus } from '@src/typesModule.js';
+import { ImageObject, UserOnlineStatus } from '@src/typesModule.js';
 import { IServer } from '@models/Server.js';
 
 async function _getUserFromParam(userParam: HydratedDocument<IUser> | string) {
@@ -291,6 +291,38 @@ function generateDeviceId() {
   return crypto.randomUUID();
 }
 
+/** Creates new profileImg subdocument.
+ * @param isPreset is the new profile image using a preset image
+ * @param data chosen preset Id or image object representing custom image
+ * @returns ProfileImg subdocument using provided data if successful. null on
+ * failure.
+ */
+function createProfileImg(
+  isPreset: boolean,
+  data: string | ImageObject,
+): ProfileImg | null {
+  let nextProfileImg: ProfileImg;
+  if (isPreset === true) {
+    if (typeof data !== 'string') {
+      return null;
+    }
+    nextProfileImg = {
+      isPreset: true,
+      presetImageId: data,
+    };
+  } else {
+    if (typeof data === 'string') {
+      return null;
+    }
+    nextProfileImg = {
+      isPreset: false,
+      uploadedImage: data,
+    };
+  }
+
+  return nextProfileImg;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -312,4 +344,5 @@ export {
   getUserRefreshTokens,
   setUserRefreshTokens,
   generateDeviceId,
+  createProfileImg,
 };
