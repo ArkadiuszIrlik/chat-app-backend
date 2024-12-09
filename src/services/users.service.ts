@@ -1,4 +1,8 @@
-import User, { IRefreshTokenObject, IUser, ProfileImg } from '@models/User.js';
+import User, {
+  IRefreshTokenObject,
+  IUser,
+  ProfileImgData,
+} from '@models/User.js';
 import { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
 import * as patchService from '@services/patch.service.js';
@@ -291,17 +295,17 @@ function generateDeviceId() {
   return crypto.randomUUID();
 }
 
-/** Creates new profileImg subdocument.
+/** Creates new profileImgData subdocument.
  * @param isPreset is the new profile image using a preset image
  * @param data chosen preset Id or image object representing custom image
- * @returns ProfileImg subdocument using provided data if successful. null on
+ * @returns ProfileImgData subdocument using provided data if successful. null on
  * failure.
  */
 function createProfileImg(
   isPreset: boolean,
   data: string | ImageObject,
-): ProfileImg | null {
-  let nextProfileImg: ProfileImg;
+): ProfileImgData | null {
+  let nextProfileImg: ProfileImgData;
   if (isPreset === true) {
     if (typeof data !== 'string') {
       return null;
@@ -324,10 +328,10 @@ function createProfileImg(
 }
 
 function getUserUploadedProfileImg(
-  user: Pick<HydratedDocument<IUser>, 'profileImg'>,
+  user: Pick<HydratedDocument<IUser>, 'profileImgData'>,
 ) {
-  if (user.profileImg?.isPreset === false) {
-    return user.profileImg.uploadedImage;
+  if (user.profileImgData?.isPreset === false) {
+    return user.profileImgData.uploadedImage;
   } else {
     return undefined;
   }

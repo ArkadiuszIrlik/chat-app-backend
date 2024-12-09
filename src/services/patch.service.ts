@@ -5,8 +5,8 @@ import { flatten } from 'mongo-dot-notation';
 import { HydratedDocument } from 'mongoose';
 
 function getPatchableUser(user: HydratedDocument<IUser>) {
-  const { username, profileImg, prefersOnlineStatus } = user.toObject();
-  const patchableDoc = { username, profileImg, prefersOnlineStatus };
+  const { username, profileImgData, prefersOnlineStatus } = user.toObject();
+  const patchableDoc = { username, profileImgData, prefersOnlineStatus };
   return patchableDoc;
 }
 
