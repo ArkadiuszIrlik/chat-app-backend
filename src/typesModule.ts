@@ -13,10 +13,6 @@ enum UserOnlineStatus {
   Offline = 'OFFLINE',
 }
 
-interface ImageObject {
-  pathname: string;
-  name: string;
-  ext: string;
-}
+type ImageObject = string;
 
 export { TemplateMailOptions, UserOnlineStatus, ImageObject };
