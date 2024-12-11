@@ -7,15 +7,14 @@ import * as filesService from '@services/files.service.js';
 async function _saveImageAsset(
   imageBuffer: fileUpload.UploadedFile,
   pathname: string,
-) {
+): Promise<ImageObject> {
   const imgFileExt = imageBuffer.mimetype.split('/')[1];
-  const nextImgObj: ImageObject = {
-    pathname: path.join(pathname, `${imageBuffer.md5}.${imgFileExt}`),
-    name: imageBuffer.md5,
-    ext: imgFileExt,
-  };
+  const nextImgObj: ImageObject = path.join(
+    pathname,
+    `${imageBuffer.md5}.${imgFileExt}`,
+  );
   try {
-    await imageBuffer.mv(`./assets/${nextImgObj.pathname}`);
+    await imageBuffer.mv(`./assets/${nextImgObj}`);
     return nextImgObj;
   } catch (err) {
     throw err;
@@ -31,7 +30,7 @@ async function saveUserProfileImage(imageBuffer: fileUpload.UploadedFile) {
 }
 
 function removeImage(imageObject: ImageObject) {
-  return filesService.removeFile(path.join('./assets/', imageObject.pathname));
+  return filesService.removeFile(path.join('./assets/', imageObject));
 }
 
 export { saveServerImage, saveUserProfileImage, removeImage };
