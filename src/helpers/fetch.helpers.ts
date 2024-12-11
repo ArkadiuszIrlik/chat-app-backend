@@ -1,3 +1,6 @@
+import path from 'path';
+import { STATIC_ASSETS_BASE_URL } from '@config/data.config.js';
+
 function getClientUrl(url: string) {
   const urlExpression =
     'https?://(www.)?[-a-zA-Z0-9@:%._+~#=]{1,256}.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)';
@@ -16,4 +19,10 @@ function getClientUrl(url: string) {
   return mainURL + nextUrl;
 }
 
-export { getClientUrl };
+function getAssetUrl(pathname: string) {
+  const currentPath = new URL(STATIC_ASSETS_BASE_URL).pathname;
+  const nextPath = path.join(currentPath, pathname);
+  return new URL(nextPath, STATIC_ASSETS_BASE_URL).toString();
+}
+
+export { getClientUrl, getAssetUrl };
