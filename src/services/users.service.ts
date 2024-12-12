@@ -292,6 +292,18 @@ function generateDeviceId() {
   return crypto.randomUUID();
 }
 
+function updateUser(
+  user: HydratedDocument<IUser>,
+  updateObject: Partial<IUser>,
+) {
+  user.set(updateObject);
+  return user;
+}
+
+function saveUser(user: HydratedDocument<IUser>) {
+  return user.save();
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -313,4 +325,6 @@ export {
   getUserRefreshTokens,
   setUserRefreshTokens,
   generateDeviceId,
+  updateUser,
+  saveUser,
 };
