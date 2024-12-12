@@ -319,6 +319,10 @@ function verifyUserStatus(user: IUser) {
   return user;
 }
 
+function getUserAccountStatus(user: Pick<IUser, 'accountStatus'>) {
+  return user.accountStatus;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -334,6 +338,7 @@ export {
   getUserEmail,
   getUserServersIn,
   getUserOnlineStatus,
+  getUserAccountStatus,
   addRefreshToken,
   removeRefreshToken,
   createUser,
