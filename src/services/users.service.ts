@@ -256,10 +256,11 @@ async function getUserServersIn(
   const userToCheck = await _getUserFromParam(user);
 
   if (populateServersIn && !userToCheck.populated('serversIn')) {
-    const populatedUser = await userToCheck.populate<{ serversIn: IServer[] }>(
-      'serversIn',
-    );
-    const populatedServers = populatedUser.serversIn;
+    const populatedUser = await userToCheck.populate<{
+      serversIn: IServer[];
+    }>('serversIn');
+    // array copy necessary to not be affected by depopulate call
+    const populatedServers = [...populatedUser.serversIn];
     userToCheck.depopulate('serversIn');
 
     return populatedServers;
