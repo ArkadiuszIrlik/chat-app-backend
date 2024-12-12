@@ -11,6 +11,7 @@ import {
   addRequestingUserToContext,
 } from '@middleware/auth.middleware.js';
 import chatRouter from '@routes/chat.router.js';
+import imagesRouter from '@routes/images.router.js';
 import connectToDb from '@config/db.config.js';
 import cors from 'cors';
 import errorHandler from 'error-handler-json';
@@ -86,9 +87,7 @@ app.use(
 app.get('/', (_req, res) => {
   res.send('Hello world!');
 });
-
-app.use('/chat', checkAuthExpiry, chatRouter);
-
+app.use('/images', verifyAuth, imagesRouter);
 app.use(errorHandler({}));
 io.engine.use(initializeContext);
 io.engine.use(initializeSocketRequest);
