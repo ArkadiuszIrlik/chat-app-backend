@@ -1,4 +1,8 @@
-import User, { IRefreshTokenObject, IUser } from '@models/User.js';
+import User, {
+  IRefreshTokenObject,
+  IUser,
+  UserAccountStatus,
+} from '@models/User.js';
 import { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
 import * as patchService from '@services/patch.service.js';
@@ -304,6 +308,17 @@ function saveUser(user: HydratedDocument<IUser>) {
   return user.save();
 }
 
+/** Checks for required conditions and sets accountStatus accordingly. */
+function verifyUserStatus(user: IUser) {
+  if (user.username && user.profileImg) {
+    user.accountStatus = UserAccountStatus.Approved;
+  } else {
+    user.accountStatus = UserAccountStatus.Pending;
+  }
+
+  return user;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -327,4 +342,5 @@ export {
   generateDeviceId,
   updateUser,
   saveUser,
+  verifyUserStatus,
 };
