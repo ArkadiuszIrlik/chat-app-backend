@@ -15,4 +15,12 @@ async function uploadProfileImg(req: Request, res: Response) {
   });
 }
 
-export { uploadProfileImg };
+async function getPresetProfileImages(_req: Request, res: Response) {
+  const presets = imagesService.presetProfileImgs;
+
+  return res
+    .status(200)
+    .json({ message: 'Presets returned', data: { presets } });
+}
+
+export { uploadProfileImg, getPresetProfileImages };
