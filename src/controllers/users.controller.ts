@@ -6,6 +6,7 @@ import * as imagesService from '@services/images.service.js';
 import * as socketService from '@services/socket.service.js';
 import fileUpload from 'express-fileupload';
 import { ImageObject } from '@src/typesModule.js';
+import { UserAccountStatus } from '@models/User.js';
 
 export async function getUserFromAuth(req: Request, res: Response) {
   const accessingUserId = req.decodedAuth?.userId;
@@ -89,4 +90,28 @@ export async function updateUser(
   );
 
   return res.status(200).json({ message: 'User updated' });
+}
+
+export async function approveAccountStatus(req: Request, res: Response) {
+  const userId = req.params.userId;
+  const { username, profileImg } = req.body;
+
+  const user =
+    req.context.requestedUser ?? (await usersService.getUser(userId));
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  usersService.updateUser(user, { username, profileImg });
+  usersService.verifyUserStatus(user);
+  const newStatus = usersService.getUserAccountStatus(user);
+  if (newStatus !== UserAccountStatus.Approved) {
+    return res.status(404).json({ message: 'Failed to approve account' });
+  }
+
+  await usersService.saveUser(user);
+
+  return res
+    .status(200)
+    .json({ message: 'Account approved', data: { accountStatus: newStatus } });
 }
