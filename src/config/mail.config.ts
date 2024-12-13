@@ -9,4 +9,6 @@ const mailTransporter = nodemailer.createTransport({
   auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
 });
 
-export { mailTransporter, SENDER_ADDRESS };
+const VERIFICATION_MAIL_EXP_TIME = 24 * 60 * 60 * 1000; //ms
+
+export { mailTransporter, SENDER_ADDRESS, VERIFICATION_MAIL_EXP_TIME };
