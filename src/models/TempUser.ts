@@ -1,25 +1,19 @@
+import { VERIFICATION_MAIL_EXP_TIME } from '@config/mail.config.js';
 import mongoose from 'mongoose';
-
-function generateVerificationToken() {
-  return crypto.randomUUID();
-}
 
 export interface ITempUser {
   email: string;
   password: string;
   expDate: Date;
-  verificationToken: string;
 }
 
 const TempUserSchema = new mongoose.Schema<ITempUser>({
   email: { type: String, required: true },
   password: { type: String, required: true },
-  expDate: { type: Date, required: true },
-  verificationToken: {
-    type: String,
+  expDate: {
+    type: Date,
     required: true,
-    unique: true,
-    default: generateVerificationToken,
+    default: () => Date.now() + VERIFICATION_MAIL_EXP_TIME,
   },
 });
 
