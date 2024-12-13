@@ -1,5 +1,5 @@
 import { getAssetUrl } from '@helpers/fetch.helpers.js';
-import mongoose, { Schema, Types } from 'mongoose';
+import { UserOnlineStatus } from '@src/typesModule.js';
 
 function getProfileImgUrl(imagePathname: string) {
   if (!imagePathname) {
@@ -20,6 +20,7 @@ export interface IUser {
   password: string;
   username: string;
   profileImg: string;
+  prefersOnlineStatus: UserOnlineStatus;
   serversIn: Types.ObjectId[];
   chatsIn: { userId: Types.ObjectId; chatId: Types.ObjectId }[];
   friends: Types.ObjectId[];
@@ -37,6 +38,11 @@ const UserSchema = new mongoose.Schema<IUser>({
     type: String,
     _id: false,
     get: getProfileImgUrl,
+  prefersOnlineStatus: {
+    type: String,
+    enum: UserOnlineStatus,
+    required: true,
+    default: UserOnlineStatus.Online,
   },
   serversIn: [{ type: Schema.Types.ObjectId, ref: 'Server', default: [] }],
   chatsIn: {
