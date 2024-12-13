@@ -9,17 +9,20 @@ function getProfileImgUrl(imagePathname: string) {
   return getAssetUrl(imagePathname);
 }
 
+export enum UserAccountStatus {
+  Pending = 'PENDING',
+  Approved = 'APPROVED',
+}
+
 export interface IRefreshTokenObject {
   token: string;
   deviceId: string;
   expDate: Date;
 }
 
-export interface IUser {
+interface IUserBase {
   email: string;
   password: string;
-  username: string;
-  profileImg: string;
   prefersOnlineStatus: UserOnlineStatus;
   serversIn: Types.ObjectId[];
   chatsIn: { userId: Types.ObjectId; chatId: Types.ObjectId }[];
@@ -27,17 +30,38 @@ export interface IUser {
   refreshTokens: IRefreshTokenObject[];
 }
 
+export type IUser = IUserBase &
+  (
+    | {
+        accountStatus: UserAccountStatus.Pending;
+        username?: string;
+        profileImg?: string;
+      }
+    | {
+        accountStatus: UserAccountStatus.Approved;
+        username: string;
+        profileImg: string;
+      }
+  );
+
 const UserSchema = new mongoose.Schema<IUser>({
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   username: {
     type: String,
+    required() {
+      return this.accountStatus === UserAccountStatus.Approved;
+    },
   },
   // stores pathname to the file
   profileImg: {
     type: String,
     _id: false,
     get: getProfileImgUrl,
+    required() {
+      return this.accountStatus === UserAccountStatus.Approved;
+    },
+  },
   prefersOnlineStatus: {
     type: String,
     enum: UserOnlineStatus,
@@ -58,6 +82,12 @@ const UserSchema = new mongoose.Schema<IUser>({
   refreshTokens: {
     type: [{ token: String, deviceId: String, expDate: Date }],
     default: [],
+  },
+  accountStatus: {
+    type: String,
+    enum: UserAccountStatus,
+    default: UserAccountStatus.Pending,
+    required: true,
   },
 });
 
