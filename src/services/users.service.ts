@@ -122,6 +122,7 @@ interface ClientSafeIUser {
   }[];
   friends?: mongoose.Types.ObjectId[];
   refreshTokens?: { token: string; expDate: Date }[];
+  accountStatus: UserAccountStatus;
 }
 
 const selfAuthProperties = [
@@ -133,6 +134,7 @@ const selfAuthProperties = [
   'serversIn',
   'chatsIn',
   'friends',
+  'accountStatus',
 ] as const;
 
 const otherUserAuthProperties = ['_id', 'username', 'profileImg'] as const;
