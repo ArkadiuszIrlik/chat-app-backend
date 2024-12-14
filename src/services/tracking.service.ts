@@ -79,8 +79,14 @@ async function getUserTrackingInfo(req: Request) {
   const userAgentParser = new UAParser(userAgentString);
   const browserInfo = _getBrowserString(userAgentParser);
 
-  const { city, countryName } = await userGeoData;
-  const location = _getLocationString(city, countryName);
+  let location: string;
+  try {
+    const { city, countryName } = await userGeoData;
+    location = _getLocationString(city, countryName);
+  } catch (e) {
+    console.log(e);
+    location = 'unknown';
+  }
 
   return { ipAddress: clientIp, location, browserInfo };
 }
