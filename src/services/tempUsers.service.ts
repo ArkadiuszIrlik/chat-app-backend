@@ -1,6 +1,6 @@
 import { TEMP_USER_MAX_AGE } from '@config/auth.config.js';
 import TempUser, { ITempUser } from '@models/TempUser.js';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 
 async function _getTempUserFromParam(
   tempUserParam: HydratedDocument<ITempUser> | string,
@@ -49,10 +49,15 @@ function getUserByEmail(email: string) {
   return TempUser.findOne({ email }).exec();
 }
 
+function getUserId(user: { _id: Types.ObjectId }) {
+  return user._id;
+}
+
 export {
   createTempUser,
   getTempUserVerificationToken,
   getTempUserFromToken,
   getUserByEmail,
   checkIfTempUserExpired,
+  getUserId,
 };
