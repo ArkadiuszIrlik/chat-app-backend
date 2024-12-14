@@ -53,6 +53,16 @@ function getUserId(user: { _id: Types.ObjectId }) {
   return user._id;
 }
 
+function refreshUserExpDate(user: Pick<ITempUser, 'expDate'>, expDate?: Date) {
+  if (expDate) {
+    user.expDate = expDate;
+  } else {
+    user.expDate = new Date(Date.now() + TEMP_USER_MAX_AGE);
+  }
+
+  return user;
+}
+
 export {
   createTempUser,
   getTempUserVerificationToken,
@@ -60,4 +70,5 @@ export {
   getUserByEmail,
   checkIfTempUserExpired,
   getUserId,
+  refreshUserExpDate,
 };
