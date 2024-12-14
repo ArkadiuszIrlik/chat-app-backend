@@ -365,6 +365,16 @@ function getEmailVerificationTokenObject(
   return user.emailVerificationTokens.find((el) => el.token === token);
 }
 
+function removeEmailVerificationToken(
+  user: Pick<IUser, 'emailVerificationTokens'>,
+  token: IEmailVerification['token'],
+) {
+  user.emailVerificationTokens = user.emailVerificationTokens.filter(
+    (el) => el.token !== token,
+  );
+  return user;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -394,4 +404,5 @@ export {
   addEmailVerificationToken,
   addEmailVerificationTokenObject,
   getEmailVerificationTokenObject,
+  removeEmailVerificationToken,
 };

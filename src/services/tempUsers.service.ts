@@ -103,6 +103,16 @@ function getEmailVerificationTokenObject(
   return user.emailVerificationTokens.find((el) => el.token === token);
 }
 
+function removeEmailVerificationToken(
+  user: Pick<ITempUser, 'emailVerificationTokens'>,
+  token: IEmailVerification['token'],
+) {
+  user.emailVerificationTokens = user.emailVerificationTokens.filter(
+    (el) => el.token !== token,
+  );
+  return user;
+}
+
 export {
   createTempUser,
   getTempUserVerificationToken,
@@ -115,4 +125,5 @@ export {
   addEmailVerificationToken,
   addEmailVerificationTokenObject,
   getEmailVerificationTokenObject,
+  removeEmailVerificationToken,
 };
