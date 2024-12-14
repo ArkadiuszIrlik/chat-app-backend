@@ -127,6 +127,10 @@ function removeUser(userId: Types.ObjectId | string) {
   return TempUser.deleteOne({ _id: userId }).exec();
 }
 
+function saveUser(user: HydratedDocument<ITempUser>) {
+  return user.save();
+}
+
 export {
   createTempUser,
   getTempUserVerificationToken,
@@ -141,5 +145,6 @@ export {
   getEmailVerificationTokenObject,
   removeEmailVerificationToken,
   removeAllEmailVerificationTokens,
+  saveUser,
   removeUser,
 };
