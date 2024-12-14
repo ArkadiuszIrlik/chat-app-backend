@@ -1,4 +1,4 @@
-import { VERIFICATION_MAIL_EXP_TIME } from '@config/mail.config.js';
+import { VERIFICATION_MAIL_MAX_AGE } from '@config/auth.config.js';
 import mongoose from 'mongoose';
 
 export interface ITempUser {
@@ -13,7 +13,7 @@ const TempUserSchema = new mongoose.Schema<ITempUser>({
   expDate: {
     type: Date,
     required: true,
-    default: () => Date.now() + VERIFICATION_MAIL_EXP_TIME,
+    default: () => Date.now() + VERIFICATION_MAIL_MAX_AGE,
   },
 });
 
