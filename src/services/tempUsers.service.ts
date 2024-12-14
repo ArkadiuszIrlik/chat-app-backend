@@ -113,6 +113,16 @@ function removeEmailVerificationToken(
   return user;
 }
 
+/** Returns array of removed token objects. */
+function removeAllEmailVerificationTokens(
+  user: Pick<ITempUser, 'emailVerificationTokens'>,
+) {
+  const removedTokens = user.emailVerificationTokens;
+  user.emailVerificationTokens = [];
+
+  return removedTokens;
+}
+
 export {
   createTempUser,
   getTempUserVerificationToken,
@@ -126,4 +136,5 @@ export {
   addEmailVerificationTokenObject,
   getEmailVerificationTokenObject,
   removeEmailVerificationToken,
+  removeAllEmailVerificationTokens,
 };

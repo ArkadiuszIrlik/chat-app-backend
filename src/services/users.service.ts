@@ -375,6 +375,16 @@ function removeEmailVerificationToken(
   return user;
 }
 
+/** Returns array of removed token objects. */
+function removeAllEmailVerificationTokens(
+  user: Pick<IUser, 'emailVerificationTokens'>,
+) {
+  const removedTokens = user.emailVerificationTokens;
+  user.emailVerificationTokens = [];
+
+  return removedTokens;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -405,4 +415,5 @@ export {
   addEmailVerificationTokenObject,
   getEmailVerificationTokenObject,
   removeEmailVerificationToken,
+  removeAllEmailVerificationTokens,
 };
