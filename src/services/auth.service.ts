@@ -249,10 +249,6 @@ async function renewRefreshToken(
   return nextTokenObject;
 }
 
-function generateEmailVerificationToken() {
-  return crypto.randomUUID();
-}
-
 export {
   hashPassword,
   verifyPasswordMatch,
@@ -270,5 +266,4 @@ export {
   addRefreshLock,
   checkRefreshTokenHasLock,
   renewRefreshToken,
-  generateEmailVerificationToken,
 };
