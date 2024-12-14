@@ -96,6 +96,13 @@ function addEmailVerificationTokenObject(
   return user;
 }
 
+function getEmailVerificationTokenObject(
+  user: Pick<ITempUser, 'emailVerificationTokens'>,
+  token: IEmailVerification['token'],
+) {
+  return user.emailVerificationTokens.find((el) => el.token === token);
+}
+
 export {
   createTempUser,
   getTempUserVerificationToken,
@@ -107,4 +114,5 @@ export {
   refreshUserExpDate,
   addEmailVerificationToken,
   addEmailVerificationTokenObject,
+  getEmailVerificationTokenObject,
 };
