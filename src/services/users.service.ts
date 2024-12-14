@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import * as patchService from '@services/patch.service.js';
 import { UserOnlineStatus } from '@src/typesModule.js';
 import { IServer } from '@models/Server.js';
+import { IEmailVerification } from '@models/EmailVerificationToken.js';
 
 async function _getUserFromParam(userParam: HydratedDocument<IUser> | string) {
   if (typeof userParam === 'string') {
@@ -325,6 +326,23 @@ function getUserAccountStatus(user: Pick<IUser, 'accountStatus'>) {
   return user.accountStatus;
 }
 
+function addEmailVerificationToken(
+  user: Pick<IUser, 'emailVerificationTokens'>,
+  token: IEmailVerification['token'],
+  nextEmail: string,
+  expDate?: Date,
+) {
+  const tokenObject = {
+    token,
+    email: nextEmail,
+    expDate,
+  };
+  // @ts-expect-error expDate has a default value in the schema
+  user.emailVerificationTokens.push(tokenObject);
+
+  return user;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -350,4 +368,5 @@ export {
   updateUser,
   saveUser,
   verifyUserStatus,
+  addEmailVerificationToken,
 };

@@ -1,4 +1,5 @@
 import { TEMP_USER_MAX_AGE } from '@config/auth.config.js';
+import { IEmailVerification } from '@models/EmailVerificationToken.js';
 import TempUser, { ITempUser } from '@models/TempUser.js';
 import { HydratedDocument, Types } from 'mongoose';
 
@@ -63,6 +64,23 @@ function refreshUserExpDate(user: Pick<ITempUser, 'expDate'>, expDate?: Date) {
   return user;
 }
 
+function addEmailVerificationToken(
+  user: Pick<ITempUser, 'emailVerificationTokens'>,
+  token: IEmailVerification['token'],
+  nextEmail: string,
+  expDate?: Date,
+) {
+  const tokenObject = {
+    token,
+    email: nextEmail,
+    expDate,
+  };
+  // @ts-expect-error expDate has a default value in the schema
+  user.emailVerificationTokens.push(tokenObject);
+
+  return user;
+}
+
 export {
   createTempUser,
   getTempUserVerificationToken,
@@ -71,4 +89,5 @@ export {
   checkIfTempUserExpired,
   getUserId,
   refreshUserExpDate,
+  addEmailVerificationToken,
 };
