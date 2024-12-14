@@ -123,6 +123,10 @@ function removeAllEmailVerificationTokens(
   return removedTokens;
 }
 
+function removeUser(userId: Types.ObjectId | string) {
+  return TempUser.deleteOne({ _id: userId }).exec();
+}
+
 export {
   createTempUser,
   getTempUserVerificationToken,
@@ -137,4 +141,5 @@ export {
   getEmailVerificationTokenObject,
   removeEmailVerificationToken,
   removeAllEmailVerificationTokens,
+  removeUser,
 };
