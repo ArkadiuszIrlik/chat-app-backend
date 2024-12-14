@@ -349,6 +349,15 @@ function getUserByEmailToken(
   return User.findOne({ 'emailVerificationTokens.token': token }).exec();
 }
 
+function addEmailVerificationTokenObject(
+  user: Pick<IUser, 'emailVerificationTokens'>,
+  tokenObject: IEmailVerification,
+) {
+  user.emailVerificationTokens.push(tokenObject);
+
+  return user;
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -376,4 +385,5 @@ export {
   saveUser,
   verifyUserStatus,
   addEmailVerificationToken,
+  addEmailVerificationTokenObject,
 };
