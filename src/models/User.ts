@@ -1,4 +1,8 @@
 import { getAssetUrl } from '@helpers/fetch.helpers.js';
+import {
+  EmailVerificationSchema,
+  IEmailVerification,
+} from '@models/EmailVerificationToken.js';
 import { UserOnlineStatus } from '@src/typesModule.js';
 
 function getProfileImgUrl(imagePathname: string) {
@@ -28,6 +32,7 @@ interface IUserBase {
   chatsIn: { userId: Types.ObjectId; chatId: Types.ObjectId }[];
   friends: Types.ObjectId[];
   refreshTokens: IRefreshTokenObject[];
+  emailVerificationTokens: IEmailVerification[];
 }
 
 export type IUser = IUserBase &
@@ -88,6 +93,11 @@ const UserSchema = new mongoose.Schema<IUser>({
     enum: UserAccountStatus,
     default: UserAccountStatus.Pending,
     required: true,
+  },
+  emailVerificationTokens: {
+    type: [EmailVerificationSchema],
+    required: true,
+    default: () => [],
   },
 });
 
