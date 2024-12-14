@@ -1,5 +1,6 @@
 import { VERIFICATION_MAIL_MAX_AGE } from '@config/auth.config.js';
 import EmailVerification from '@models/EmailVerification.js';
+import { IEmailVerification } from '@models/EmailVerificationToken.js';
 import { Types } from 'mongoose';
 
 function generateVerificationToken(
@@ -32,4 +33,20 @@ function generateVerificationTokenObject(email: string, expDate?: Date) {
   return tokenObject;
 }
 
-export { generateVerificationToken, generateVerificationTokenObject };
+/** Returns true if token expired, false if not expired */
+function checkTokenExpiry(tokenObject: IEmailVerification) {
+  let isExpired: boolean;
+  if (tokenObject.expDate < new Date()) {
+    isExpired = true;
+  } else {
+    isExpired = false;
+  }
+
+  return isExpired;
+}
+
+export {
+  generateVerificationToken,
+  generateVerificationTokenObject,
+  checkTokenExpiry,
+};
