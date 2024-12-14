@@ -343,6 +343,12 @@ function addEmailVerificationToken(
   return user;
 }
 
+function getUserByEmailToken(
+  token: IUser['emailVerificationTokens'][number]['token'],
+) {
+  return User.findOne({ 'emailVerificationTokens.token': token }).exec();
+}
+
 export {
   getUser,
   addServerAsMember,
@@ -359,6 +365,7 @@ export {
   getUserServersIn,
   getUserOnlineStatus,
   getUserAccountStatus,
+  getUserByEmailToken,
   addRefreshToken,
   removeRefreshToken,
   createUser,

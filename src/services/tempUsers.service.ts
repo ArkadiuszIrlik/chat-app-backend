@@ -81,11 +81,18 @@ function addEmailVerificationToken(
   return user;
 }
 
+function getUserByEmailToken(
+  token: ITempUser['emailVerificationTokens'][number]['token'],
+) {
+  return TempUser.findOne({ 'emailVerificationTokens.token': token }).exec();
+}
+
 export {
   createTempUser,
   getTempUserVerificationToken,
   getTempUserFromToken,
   getUserByEmail,
+  getUserByEmailToken,
   checkIfTempUserExpired,
   getUserId,
   refreshUserExpDate,
