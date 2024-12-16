@@ -119,6 +119,18 @@ async function handleSocket(socket: SocketWithAuth, io: SocketServer) {
     });
     callback(userList);
   });
+
+  socket.on(SocketEvents.ChangeOnlineStatus, (nextStatus, callback) => {
+    if (Object.values(UserOnlineStatus).includes(nextStatus)) {
+      socket.data.onlineStatus = nextStatus;
+      io.to([...socket.rooms.keys()]).emit(
+        SocketEvents.OnlineStatusChanged,
+        usersService.getUserId(socket.data.user).toString(),
+        nextStatus,
+      );
+      callback();
+    }
+  });
 }
 
 export { handleSocket };
