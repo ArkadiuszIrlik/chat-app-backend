@@ -1,5 +1,8 @@
+import ChatMessage from '@models/ChatMessage.js';
 import { IUser } from '@models/User.js';
+import sanitize from 'sanitize-html';
 import {
+  SocketChatMessage,
   SocketEvents,
   SocketServer,
   SocketWithAuth,
@@ -61,6 +64,42 @@ async function handleSocket(socket: SocketWithAuth, io: SocketServer) {
       socket.data.onlineStatus,
     );
   }
+
+  socket.on(SocketEvents.SendChatMessage, (msg, roomId, callback) => {
+    const roomData = socket.data.channelSocketMap.get(roomId);
+    if (!roomData) {
+      return;
+    }
+    const { channelId, serverId } = roomData;
+    const message = new ChatMessage({
+      postedAt: Date.now(),
+      author: usersService.getUserId(socket.data.user),
+      text: sanitize(msg.text),
+      chatId: channelId,
+      serverId,
+      clientId: sanitize(msg.clientId),
+    });
+    const clientSafeUser = usersService.getClientSafeSubset(
+      socket.data.user,
+      usersService.UserAuthLevel.OtherUser,
+    );
+    const baseMessage = message.toJSON({ flattenObjectIds: true });
+    if (!baseMessage.serverId) {
+      return;
+    }
+    const messageToSend: SocketChatMessage = {
+      // type assertion necessary because typescript ignores type guard
+      ...(baseMessage as Omit<typeof baseMessage, 'serverId'> & {
+        serverId: string;
+      }),
+
+      author: clientSafeUser,
+    };
+
+    socket.broadcast.to(roomId).emit(SocketEvents.ChatMessage, messageToSend);
+    callback(messageToSend);
+    message.save();
+  });
 }
 
 export { handleSocket };
