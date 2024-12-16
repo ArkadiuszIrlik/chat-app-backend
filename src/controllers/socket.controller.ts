@@ -12,6 +12,18 @@ import { HydratedDocument } from 'mongoose';
 import * as usersService from '@services/users.service.js';
 import * as serversService from '@services/servers.service.js';
 
+async function _refetchUser(socket: SocketWithAuth) {
+  const userId = usersService.getUserId(socket.data.user);
+  const nextUser = await usersService.getUser(userId.toString(), {
+    populateServersIn: true,
+  });
+
+  if (nextUser === null) {
+    throw new Error('User not found');
+  }
+  return nextUser;
+}
+
 async function _refreshUser(
   socket: SocketWithAuth,
   user: HydratedDocument<IUser>,
@@ -130,6 +142,23 @@ async function handleSocket(socket: SocketWithAuth, io: SocketServer) {
       );
       callback();
     }
+  });
+
+  socket.on(SocketEvents.UpdateServerList, async (callback) => {
+    try {
+      const nextUser = await _refetchUser(socket);
+      await _refreshUser(socket, nextUser);
+    } catch (err) {
+      callback({ ok: false, data: null });
+      return;
+    }
+    if (socket.data.onlineStatus !== UserOnlineStatus.Offline) {
+      socket.to([...socket.rooms.keys()]).emit(SocketEvents.UserConnected, {
+        _id: usersService.getUserId(socket.data.user).toString(),
+        onlineStatus: socket.data.onlineStatus,
+      });
+    }
+    callback({ ok: true, data: null });
   });
 }
 
