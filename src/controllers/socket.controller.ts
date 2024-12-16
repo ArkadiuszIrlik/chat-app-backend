@@ -160,6 +160,16 @@ async function handleSocket(socket: SocketWithAuth, io: SocketServer) {
     }
     callback({ ok: true, data: null });
   });
+
+  socket.on('disconnecting', () => {
+    if (socket.data.onlineStatus !== UserOnlineStatus.Offline) {
+      io.to([...socket.rooms.keys()]).emit(
+        SocketEvents.OnlineStatusChanged,
+        usersService.getUserId(socket.data.user).toString(),
+        UserOnlineStatus.Offline,
+      );
+    }
+  });
 }
 
 export { handleSocket };
