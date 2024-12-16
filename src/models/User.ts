@@ -4,6 +4,7 @@ import {
   IEmailVerification,
 } from '@models/EmailVerificationToken.js';
 import { UserOnlineStatus } from '@src/typesModule.js';
+import mongoose, { Schema, Types } from 'mongoose';
 
 function getProfileImgUrl(imagePathname: string) {
   if (!imagePathname) {
