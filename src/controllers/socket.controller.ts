@@ -100,6 +100,25 @@ async function handleSocket(socket: SocketWithAuth, io: SocketServer) {
     callback(messageToSend);
     message.save();
   });
+
+  socket.on(SocketEvents.GetOnlineStatus, async (roomId, callback) => {
+    const socketList = await io.in(roomId).fetchSockets();
+    const userList: {
+      _id: string;
+      onlineStatus: UserOnlineStatus;
+    }[] = [];
+    socketList.forEach((s) => {
+      if (s.data.onlineStatus === UserOnlineStatus.Offline) {
+        return;
+      }
+      userList.push({
+        _id: usersService.getUserId(s.data.user).toString(),
+        onlineStatus: s.data.onlineStatus,
+      });
+      return;
+    });
+    callback(userList);
+  });
 }
 
 export { handleSocket };
