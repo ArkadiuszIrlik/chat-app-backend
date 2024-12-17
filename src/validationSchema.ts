@@ -12,6 +12,14 @@ const serverImg = ExtendedYup.string()
   .typeError('Invalid "serverImg" type')
   .trim();
 
+const serverSchema = {
+  name: ExtendedYup.string()
+    .typeError('Invalid "name" type')
+    .trim()
+    .max(30, "Server name can't be longer than 30 characters."),
+  serverImg: ExtendedYup.string().typeError('Invalid "serverImg" type').trim(),
+};
+
 const userSchema = {
   username: ExtendedYup.string()
     .typeError('Invalid "username" type')
@@ -22,4 +30,4 @@ const userSchema = {
     .trim(),
 };
 
-export { patchFile, idParam, serverImg, userSchema };
+export { patchFile, idParam, serverImg, serverSchema, userSchema };
