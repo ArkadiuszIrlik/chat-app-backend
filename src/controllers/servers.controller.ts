@@ -3,12 +3,10 @@ import { NextFunction, Request, Response } from 'express';
 import { HydratedDocument } from 'mongoose';
 import * as serversService from '@services/servers.service.js';
 import * as usersService from '@services/users.service.js';
-import * as imagesService from '@services/images.service.js';
 import * as socketService from '@services/socket.service.js';
-import * as patchService from '@services/patch.service.js';
 import * as uploadedFilesService from '@services/uploadedFiles.service.js';
 import fileUpload from 'express-fileupload';
-import { ImageObject } from '@src/typesModule.js';
+import createHttpError from 'http-errors';
 
 export async function getServer(req: Request, res: Response) {
   const serverId = req.params.serverId;
@@ -180,32 +178,7 @@ export async function updateServer(
   next: NextFunction,
 ) {
   const serverId = req.params.serverId;
-  // type tested by validation middleware
-  const tempPatch = req.files?.patch as fileUpload.UploadedFile;
-
-  const patchBuffer = await uploadedFilesService.readTempFile(tempPatch);
-  uploadedFilesService.removeTempFile(tempPatch);
-
-  const patch = JSON.parse(patchBuffer.toString());
-  if (!Array.isArray(patch)) {
-    return res.status(404).json({ message: 'Invalid PATCH data' });
-  }
-
-  const isServerImgUpdate = patchService.checkIfPatchHasProperty(
-    patch,
-    '/serverImg',
-  );
-
-  let serverImgObj: ImageObject | null = null;
-  if (isServerImgUpdate) {
-    // type tested by validation middleware
-    const serverImgFile = req.files?.serverImg as fileUpload.UploadedFile;
-    if (!serverImgFile) {
-      return res.status(404).json({ message: 'Missing serverImg upload' });
-    }
-    serverImgObj = await imagesService.saveServerImage(serverImgFile);
-    patchService.updateCommandValue(patch, '/serverImg', serverImgObj);
-  }
+  const patch = req.body.patch;
 
   const server =
     req.context.requestedServer ?? (await serversService.getServer(serverId));
@@ -216,10 +189,9 @@ export async function updateServer(
   try {
     await serversService.patchServer(server, patch);
   } catch (err) {
-    if (isServerImgUpdate && serverImgObj) {
-      await imagesService.removeImage(serverImgObj);
-    }
-    return next(err);
+    return next(
+      createHttpError(500, `Failed to update server`, { expose: true }),
+    );
   }
   socketService.emitServerUpdated(req.socketIo, server);
 
