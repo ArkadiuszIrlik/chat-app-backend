@@ -67,8 +67,15 @@ const presetProfileImgs = originalPresetProfileImgs.map((preset) => ({
   url: getAssetUrl(preset.pathname),
 }));
 
+const presetServerImgs = originalPresetProfileImgs.map((preset) => ({
+  id: preset.id,
+  altText: preset.altText,
+  url: getAssetUrl(preset.pathname),
+}));
+
 export {
   presetProfileImgs,
+  presetServerImgs,
   saveServerImage,
   saveUserProfileImage,
   removeImage,
