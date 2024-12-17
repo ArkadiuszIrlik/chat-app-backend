@@ -1,5 +1,10 @@
 import { ExtendedYup } from '@src/extendedYup.js';
 
+// for use in JSON body
+const patch = ExtendedYup.array(
+  ExtendedYup.object().typeError('Invalid PATCH data format'),
+).typeError('Invalid PATCH data format');
+// for use in file uploads
 const patchFile = ExtendedYup.mixed()
   .notArray('Single patch document expected')
   .oneOfMimeType(['application/json'], 'Unsupported patch file format')
@@ -30,4 +35,4 @@ const userSchema = {
     .trim(),
 };
 
-export { patchFile, idParam, serverImg, serverSchema, userSchema };
+export { patch, patchFile, idParam, serverImg, serverSchema, userSchema };
