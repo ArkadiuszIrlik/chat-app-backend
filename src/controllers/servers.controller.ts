@@ -28,22 +28,19 @@ export async function getServer(req: Request, res: Response) {
 }
 
 export async function createServer(req: Request, res: Response) {
+  const { serverName, serverImg } = req.body;
   const accessingUserId = req.decodedAuth?.userId;
   if (!accessingUserId) {
     return res.status(401).json({ message: 'Missing user credentials' });
   }
-  const userPromise = usersService.getUser(accessingUserId);
-  const serverImgFile = req.files?.image as fileUpload.UploadedFile;
-  const serverImgObj = await imagesService.saveServerImage(serverImgFile);
-  const serverName = req.body.name;
-  const user = await userPromise;
+  const user = await usersService.getUser(accessingUserId);
 
   if (user === null) {
     return res.status(401).json({ message: 'User not found' });
   }
 
   const newServer = await serversService.createServer(
-    { serverName, serverImg: serverImgObj, ownerId: user._id },
+    { serverName, serverImg, ownerId: user._id },
     { populateMembers: true },
   );
 
