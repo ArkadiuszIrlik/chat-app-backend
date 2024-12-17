@@ -23,4 +23,30 @@ async function getPresetProfileImages(_req: Request, res: Response) {
     .json({ message: 'Presets returned', data: { presets } });
 }
 
-export { uploadProfileImg, getPresetProfileImages };
+async function uploadServerImg(req: Request, res: Response) {
+  // type tested by validation middleware
+  const tempImage = req.files?.image as fileUpload.UploadedFile;
+  const imageObject = await imagesService.saveServerImage(tempImage);
+
+  return res.status(201).json({
+    message: 'Image uploaded',
+    data: {
+      image: imageObject,
+    },
+  });
+}
+
+async function getPresetServerImages(_req: Request, res: Response) {
+  const presets = imagesService.presetServerImgs;
+
+  return res
+    .status(200)
+    .json({ message: 'Presets returned', data: { presets } });
+}
+
+export {
+  uploadProfileImg,
+  getPresetProfileImages,
+  uploadServerImg,
+  getPresetServerImages,
+};
