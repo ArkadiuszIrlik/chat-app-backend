@@ -34,8 +34,8 @@ interface IUserBase {
   friends: Types.ObjectId[];
   refreshTokens: IRefreshTokenObject[];
   emailVerificationTokens: IEmailVerification[];
-  demoStepOffset: number;
-  demoServer: Types.ObjectId;
+  demoStepOffset?: number;
+  demoServer?: Types.ObjectId;
 }
 
 export type IUser = IUserBase &
@@ -104,13 +104,11 @@ const UserSchema = new mongoose.Schema<IUser>({
   },
   demoStepOffset: {
     type: Number,
-    required: true,
     default: 0,
   },
   demoServer: {
     type: Schema.Types.ObjectId,
     ref: 'Server',
-    required: true,
   },
 });
 
