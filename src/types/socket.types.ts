@@ -19,6 +19,7 @@ enum SocketEvents {
   UpdateServerList = 'update server list',
   UserConnected = 'user connected',
   UserUpdated = 'user updated',
+  StartDemo = 'start demo',
 }
 
 interface SocketChatMessage {
@@ -96,6 +97,7 @@ interface ClientToServerSocketEvents {
   [SocketEvents.UpdateServerList]: (
     callback: (res: { ok: boolean; data: any }) => void,
   ) => void;
+  [SocketEvents.StartDemo]: () => void;
 }
 
 interface InterServerSocketEvents {}
