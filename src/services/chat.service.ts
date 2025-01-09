@@ -1,6 +1,8 @@
 import ChatMessage, { IChatMessage } from '@models/ChatMessage.js';
 import { HydratedDocument, Types } from 'mongoose';
 import { IUser } from '@models/User.js';
+import * as usersService from '@services/users.service.js';
+import { SocketChatMessage } from '@customTypes/socket.types.js';
 
 interface PopulatedAuthor {
   author: {
@@ -220,6 +222,31 @@ async function createServerMessage(
   return message;
 }
 
+/** Returns SocketChatMessage object on success, null on failure. */
+function getSocketSafeServerMessage(
+  message: HydratedDocument<IChatMessage>,
+  author: HydratedDocument<IUser>,
+): SocketChatMessage | null {
+  const clientSafeAuthor = usersService.getClientSafeSubset(
+    author,
+    usersService.UserAuthLevel.OtherUser,
+  );
+  const baseMessage = message.toJSON({ flattenObjectIds: true });
+
+  if (!baseMessage.serverId) {
+    return null;
+  }
+  const socketSafeMessage: SocketChatMessage = {
+    // type assertion necessary because typescript ignores type guard
+    ...(baseMessage as Omit<typeof baseMessage, 'serverId'> & {
+      serverId: string;
+    }),
+    author: clientSafeAuthor,
+  };
+
+  return socketSafeMessage;
+}
+
 export {
   createServerMessage,
   getMessageById,
@@ -231,4 +258,5 @@ export {
   getMessageAuthorId,
   getClientSafeSubset,
   ChatMessageAuthLevel,
+  getSocketSafeServerMessage,
 };
