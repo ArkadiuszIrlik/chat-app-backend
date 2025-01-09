@@ -183,7 +183,45 @@ function getClientSafeSubset(
   return clientSubset;
 }
 
+async function createServerMessage(
+  messageProperties: {
+    author: string | Types.ObjectId;
+    text: string;
+    channelId: string | Types.ObjectId;
+    serverId: string | Types.ObjectId;
+    clientId: string;
+    postedAt?: Date;
+  },
+  {
+    saveDoc = true,
+  }: {
+    saveDoc?: boolean;
+  } = {},
+) {
+  const { author, text, channelId, serverId, clientId, postedAt } =
+    messageProperties;
+
+  const message = new ChatMessage({
+    postedAt,
+    author,
+    text,
+    chatId: channelId,
+    serverId,
+    clientId,
+  });
+
+  if (saveDoc) {
+    await message.save();
+  } else {
+    // avoid double validation
+    await message.validate();
+  }
+
+  return message;
+}
+
 export {
+  createServerMessage,
   getMessageById,
   getMessages,
   getMessagesWithCursor,
