@@ -1,8 +1,6 @@
-import ChatMessage from '@models/ChatMessage.js';
 import { IUser } from '@models/User.js';
 import sanitize from 'sanitize-html';
 import {
-  SocketChatMessage,
   SocketEvents,
   SocketServer,
   SocketWithAuth,
@@ -11,6 +9,7 @@ import { UserOnlineStatus } from '@src/typesModule.js';
 import { HydratedDocument } from 'mongoose';
 import * as usersService from '@services/users.service.js';
 import * as serversService from '@services/servers.service.js';
+import * as chatService from '@services/chat.service.js';
 
 async function _refetchUser(socket: SocketWithAuth) {
   const userId = usersService.getUserId(socket.data.user);
@@ -77,40 +76,34 @@ async function handleSocket(socket: SocketWithAuth, io: SocketServer) {
     );
   }
 
-  socket.on(SocketEvents.SendChatMessage, (msg, roomId, callback) => {
+  socket.on(SocketEvents.SendChatMessage, async (msg, roomId, callback) => {
     const roomData = socket.data.channelSocketMap.get(roomId);
     if (!roomData) {
       return;
     }
     const { channelId, serverId } = roomData;
-    const message = new ChatMessage({
-      postedAt: Date.now(),
-      author: usersService.getUserId(socket.data.user),
-      text: sanitize(msg.text),
-      chatId: channelId,
-      serverId,
-      clientId: sanitize(msg.clientId),
-    });
-    const clientSafeUser = usersService.getClientSafeSubset(
-      socket.data.user,
-      usersService.UserAuthLevel.OtherUser,
+
+    const messageDoc = await chatService.createServerMessage(
+      {
+        author: usersService.getUserId(socket.data.user),
+        text: sanitize(msg.text),
+        channelId,
+        serverId,
+        clientId: sanitize(msg.clientId),
+      },
+      { saveDoc: false },
     );
-    const baseMessage = message.toJSON({ flattenObjectIds: true });
-    if (!baseMessage.serverId) {
+    const socketMessage = chatService.getSocketSafeServerMessage(
+      messageDoc,
+      socket.data.user,
+    );
+    if (!socketMessage) {
       return;
     }
-    const messageToSend: SocketChatMessage = {
-      // type assertion necessary because typescript ignores type guard
-      ...(baseMessage as Omit<typeof baseMessage, 'serverId'> & {
-        serverId: string;
-      }),
 
-      author: clientSafeUser,
-    };
-
-    socket.broadcast.to(roomId).emit(SocketEvents.ChatMessage, messageToSend);
-    callback(messageToSend);
-    message.save();
+    socket.broadcast.to(roomId).emit(SocketEvents.ChatMessage, socketMessage);
+    messageDoc.save();
+    callback(socketMessage);
   });
 
   socket.on(SocketEvents.GetOnlineStatus, async (roomId, callback) => {
