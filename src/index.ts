@@ -37,6 +37,7 @@ import {
 } from '@middleware/socket.middleware.js';
 import { initializeRefreshLockCache } from '@services/auth.service.js';
 import compression from 'compression';
+import * as demoService from '@services/demo.service.js';
 
 // alternative to __dirname that works in both ESM (app) and CJS (jest)
 const unifiedDirname =
@@ -80,6 +81,8 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 initializeRefreshLockCache();
+demoService.createFakeDemoUsers();
+
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
