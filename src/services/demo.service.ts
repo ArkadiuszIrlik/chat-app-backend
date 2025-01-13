@@ -1,5 +1,6 @@
 import Server from '@models/Server.js';
 import User, { IUser, UserAccountStatus } from '@models/User.js';
+import { hashPassword } from '@services/auth.service.js';
 import { HydratedDocument, Types } from 'mongoose';
 
 enum MessageAuthorIds {
@@ -97,7 +98,35 @@ function createDemoServer(ownerId: string | Types.ObjectId) {
   return demoServer;
 }
 
+/** Creates a new instance of a (human) demo user.
+ * @param userId id for the new demo user doc
+ * @param demoServerId id of the demo server instance created for this user
+ * @returns mongoose doc of the created user
+ */
+async function createDemoUser(
+  userId: string | Types.ObjectId,
+  demoServerId: string | Types.ObjectId,
+) {
+  const password = await hashPassword(crypto.randomUUID());
+
+  const demoUser = new User({
+    _id: userId,
+    username: 'Demo User',
+    email: `belugademouser-${crypto.randomUUID()}@${emailUrl.hostname}`,
+    password,
+    profileImg:
+      'images/user/preset-images/6baf1aad828a68c4db5cb123bafbb090.png',
+    accountStatus: UserAccountStatus.Approved,
+    serversIn: [demoServerId],
+    demoStepOffset: 0,
+    demoServer: demoServerId,
+  });
+
+  return demoUser;
+}
+
 export {
+  createDemoUser,
   createFakeDemoUsers,
   createDemoServer,
   getDemoUsers,
