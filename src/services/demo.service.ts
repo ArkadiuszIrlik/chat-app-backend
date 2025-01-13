@@ -52,7 +52,15 @@ async function createFakeDemoUsers() {
   demoUsers = nextDemoUsers;
 }
 
+async function getDemoUsers() {
+  if (demoUsers.length !== demoUserTemplates.length) {
+    await createFakeDemoUsers();
+  }
+  return demoUsers;
+}
+
 export {
   createFakeDemoUsers,
+  getDemoUsers,
   MessageAuthorIds,
 };
