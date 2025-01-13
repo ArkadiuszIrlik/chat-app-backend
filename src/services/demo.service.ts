@@ -1,9 +1,16 @@
+import Server from '@models/Server.js';
 import User, { IUser, UserAccountStatus } from '@models/User.js';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
+
 enum MessageAuthorIds {
   John = '677a7ad6daef42ed69afdea8',
   Billy = '677a7ad6daef42ed69afdea9',
   Sue = '677d63d09f5268156bd6f254',
+}
+
+enum DemoChannelIds {
+  General = '677fe20cafdc934e773604c8',
+  Pics = '677fe20cafdc934e773604c9',
 }
 // avoids accidentally using someone's real email address
 const emailUrl = new URL(process.env.FRONTEND_ADDRESS ?? 'https://example.com');
@@ -59,8 +66,41 @@ async function getDemoUsers() {
   return demoUsers;
 }
 
+/** Creates a new demo server instance.
+ * @returns mongoose doc of the created server
+ */
+function createDemoServer(ownerId: string | Types.ObjectId) {
+  const demoServer = new Server({
+    name: 'Demo Server',
+    ownerId: ownerId,
+    serverImg: 'images/user/preset-images/6baf1aad828a68c4db5cb123bafbb090.png',
+    channelCategories: [
+      {
+        name: 'General',
+        channels: [
+          {
+            name: 'chat',
+            type: 'text',
+            demoChannelId: DemoChannelIds.General,
+          },
+          {
+            name: 'cute cat pics 😸',
+            type: 'text',
+            demoChannelId: DemoChannelIds.Pics,
+          },
+        ],
+      },
+    ],
+    members: [...Object.values(MessageAuthorIds), ownerId],
+  });
+
+  return demoServer;
+}
+
 export {
   createFakeDemoUsers,
+  createDemoServer,
   getDemoUsers,
   MessageAuthorIds,
+  DemoChannelIds,
 };
