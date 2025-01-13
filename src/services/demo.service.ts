@@ -13,6 +13,40 @@ enum DemoChannelIds {
   General = '677fe20cafdc934e773604c8',
   Pics = '677fe20cafdc934e773604c9',
 }
+
+const templateServerStartDate = new Date('January 30, 2025, 12:00:00');
+const initialMessageTemplates = [
+  {
+    authorId: MessageAuthorIds.John,
+    textContent: 'Hey everyone',
+    datePostedRelative: new Date('January 16, 2025, 16:59:23'),
+    demoChannelId: DemoChannelIds.General,
+  },
+  {
+    authorId: MessageAuthorIds.Billy,
+    textContent: `What's up John. How are you doing?`,
+    datePostedRelative: new Date('January 16, 2025, 17:00:05'),
+    demoChannelId: DemoChannelIds.General,
+  },
+  {
+    authorId: MessageAuthorIds.John,
+    textContent: `I'm doing great! Happy to join you guys here.`,
+    datePostedRelative: new Date('January 16, 2025, 17:00:45'),
+    demoChannelId: DemoChannelIds.General,
+  },
+  {
+    authorId: MessageAuthorIds.Sue,
+    textContent: `Here's a little something to make your day better <a href="https://th.bing.com/th/id/OIP.AGHDNRbrMghFLo3hEzREUQHaFj" target="_blank">https://th.bing.com/th/id/OIP.AGHDNRbrMghFLo3hEzREUQHaFj</a>`,
+    datePostedRelative: new Date('January 20, 2025, 11:34:35'),
+    demoChannelId: DemoChannelIds.Pics,
+  },
+  {
+    authorId: MessageAuthorIds.Billy,
+    textContent: `God that's so cute 😍`,
+    datePostedRelative: new Date('January 20, 2025, 11:42:50'),
+    demoChannelId: DemoChannelIds.Pics,
+  },
+];
 // avoids accidentally using someone's real email address
 const emailUrl = new URL(process.env.FRONTEND_ADDRESS ?? 'https://example.com');
 let demoUsers: HydratedDocument<IUser>[] = [];
