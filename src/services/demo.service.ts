@@ -3,7 +3,9 @@ import {
   getDateWithoutHours,
   setDateHourOffset,
 } from '@helpers/date.helpers.js';
-import Server from '@models/Server.js';
+import { getChannelsFromCategories } from '@helpers/servers.helpers.js';
+import ChatMessage from '@models/ChatMessage.js';
+import Server, { IServer } from '@models/Server.js';
 import User, { IUser, UserAccountStatus } from '@models/User.js';
 import { hashPassword } from '@services/auth.service.js';
 import { HydratedDocument, Types } from 'mongoose';
@@ -76,6 +78,34 @@ const initialMessageTemplates = [
     demoChannelId: DemoChannelIds.Pics,
   },
 ];
+
+/** Creates initial messages for provided demo server and saves them in DB. */
+function addInitialServerMessages(server: IServer) {
+  const serverId = server._id;
+  const channels = getChannelsFromCategories(server.channelCategories);
+  const channelDemoIdMap = new Map();
+  channels.forEach((channel) =>
+    channelDemoIdMap.set(channel.demoChannelId, channel._id),
+  );
+
+  const messageDocs = initialMessageTemplates.map(
+    (template) =>
+      new ChatMessage({
+        author: template.authorId,
+        postedAt: _getRelativePostedAt(
+          new Date(),
+          template.datePostedRelative,
+          templateServerStartDate,
+        ),
+        text: template.textContent,
+        serverId,
+        chatId: channelDemoIdMap.get(template.demoChannelId),
+      }),
+  );
+
+  return ChatMessage.bulkSave(messageDocs);
+}
+
 // avoids accidentally using someone's real email address
 const emailUrl = new URL(process.env.FRONTEND_ADDRESS ?? 'https://example.com');
 let demoUsers: HydratedDocument<IUser>[] = [];
@@ -189,6 +219,7 @@ async function createDemoUser(
 }
 
 export {
+  addInitialServerMessages,
   createDemoUser,
   createFakeDemoUsers,
   createDemoServer,
