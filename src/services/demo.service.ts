@@ -1,3 +1,8 @@
+import {
+  getDateHourOffset,
+  getDateWithoutHours,
+  setDateHourOffset,
+} from '@helpers/date.helpers.js';
 import Server from '@models/Server.js';
 import User, { IUser, UserAccountStatus } from '@models/User.js';
 import { hashPassword } from '@services/auth.service.js';
@@ -12,6 +17,30 @@ enum MessageAuthorIds {
 enum DemoChannelIds {
   General = '677fe20cafdc934e773604c8',
   Pics = '677fe20cafdc934e773604c9',
+}
+
+/** Calculates date equally offset from provided currentDate as messageDate
+ * was from serverStartDate.
+ *
+ * @param currentDate date the new date will be relative to
+ * @param messageDate template message postedAt date
+ * @param serverStartDate template server creation date
+ * @returns unix timestamp calculated offset date
+ */
+function _getRelativePostedAt(
+  currentDate: Date,
+  messageDate: Date,
+  serverStartDate: Date,
+) {
+  const relativeOffset =
+    getDateWithoutHours(serverStartDate).getTime() -
+    getDateWithoutHours(messageDate).getTime();
+
+  const relativeDateNoHours = new Date(currentDate.getTime() - relativeOffset);
+  const hourOffset = getDateHourOffset(messageDate);
+  const relativeDate = setDateHourOffset(relativeDateNoHours, hourOffset);
+
+  return relativeDate;
 }
 
 const templateServerStartDate = new Date('January 30, 2025, 12:00:00');
