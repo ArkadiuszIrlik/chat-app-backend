@@ -126,6 +126,30 @@ export async function processInviteCode(req: Request, res: Response) {
     .json({ message: 'Successfully joined server', data: { server } });
 }
 
+export async function getServerFromInviteCode(req: Request, res: Response) {
+  const inviteCode = req.params.inviteCode;
+  const invite = await serversService.findInvite(inviteCode);
+  if (!invite) {
+    return res.status(404).json({ message: 'Invalid invite code' });
+  }
+
+  const serverId = invite.server;
+  const server = await serversService.getServer(serverId.toString());
+  if (!server) {
+    return res.status(500).json({ message: 'Server error' });
+  }
+
+  const clientSafeServer = serversService.getClientSafeSubset(
+    server,
+    serversService.ServerAuthLevel.Member,
+  );
+
+  return res.status(200).json({
+    message: 'Successfully fetched server',
+    data: { server: clientSafeServer },
+  });
+}
+
 export async function createChannel(req: Request, res: Response) {
   const serverId = req.params.serverId;
   const { channelName, channelCategoryId, channelCategoryName, isNewCategory } =
