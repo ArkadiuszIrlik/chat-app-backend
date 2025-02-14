@@ -5,6 +5,7 @@ import * as mailService from '@services/mail.service.js';
 import * as tempUsersService from '@services/tempUsers.service.js';
 import * as trackingService from '@services/tracking.service.js';
 import * as clientService from '@services/client.service.js';
+import * as emailVerificationService from '@services/emailVerification.service.js';
 import { CLIENT_RESET_PASSWORD_PATH } from '@config/client.config.js';
 import { VERIFICATION_MAIL_MAX_AGE } from '@config/auth.config.js';
 
@@ -117,18 +118,54 @@ export async function verifyEmail(req: Request, res: Response) {
   // type checked by validation middleware
   const verificationToken = req.query.token as string;
 
-  const tempUser =
-    await tempUsersService.getTempUserFromToken(verificationToken);
-  if (tempUser === null) {
+  const userPromise = usersService.getUserByEmailToken(verificationToken);
+  const tempUserPromise =
+    tempUsersService.getUserByEmailToken(verificationToken);
+  const user = await userPromise;
+  const tempUser = await tempUserPromise;
+
+  if (user === null && tempUser === null) {
     return res.status(404).json({ message: 'Invalid verification token' });
   }
-
-  const isExpired = await tempUsersService.checkIfTempUserExpired(tempUser);
-  if (isExpired) {
-    return res.status(404).json({ message: 'Verification token expired' });
+  if (user) {
+    const tokenObject = usersService.getEmailVerificationTokenObject(
+      user,
+      verificationToken,
+    );
+    if (!tokenObject) {
+      return res.status(404).json({ message: 'Invalid verification token' });
+    }
+    const isExpired = emailVerificationService.checkTokenExpiry(tokenObject);
+    if (isExpired) {
+      usersService.removeEmailVerificationToken(user, tokenObject.token);
+      return res.status(404).json({ message: 'Verification token expired' });
+    }
+    user.email = tokenObject.email;
+    usersService.removeEmailVerificationToken(user, tokenObject.token);
+    await usersService.saveUser(user);
   }
-
-  await usersService.createUser(tempUser);
+  if (tempUser) {
+    const tokenObject = tempUsersService.getEmailVerificationTokenObject(
+      tempUser,
+      verificationToken,
+    );
+    if (!tokenObject) {
+      return res.status(404).json({ message: 'Invalid verification token' });
+    }
+    const isExpired = emailVerificationService.checkTokenExpiry(tokenObject);
+    if (isExpired) {
+      tempUsersService.removeEmailVerificationToken(
+        tempUser,
+        tokenObject.token,
+      );
+      return res.status(404).json({ message: 'Verification token expired' });
+    }
+    tempUser.email = tokenObject.email;
+    tempUsersService.removeAllEmailVerificationTokens(tempUser);
+    await usersService.createUser(tempUser.toObject());
+    const tempUserId = tempUsersService.getUserId(tempUser);
+    tempUsersService.removeUser(tempUserId);
+  }
 
   return res.status(200).json({
     message: 'Email address verified successfully',
