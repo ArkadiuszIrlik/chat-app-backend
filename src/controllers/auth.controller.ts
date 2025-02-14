@@ -6,27 +6,54 @@ import * as tempUsersService from '@services/tempUsers.service.js';
 import * as trackingService from '@services/tracking.service.js';
 import * as clientService from '@services/client.service.js';
 import { CLIENT_RESET_PASSWORD_PATH } from '@config/client.config.js';
+import { VERIFICATION_MAIL_MAX_AGE } from '@config/auth.config.js';
 
 export async function registerUser(req: Request, res: Response) {
   const { email, password } = req.body;
 
-  const existingEmailUser = usersService.getUserByEmail(email);
+  const existingEmailUserPromise = usersService.getUserByEmail(email);
+  const existingEmailTempUserPromise = tempUsersService.getUserByEmail(email);
   const hashedPassword = await authService.hashPassword(password);
-  const isExistingEmail = !!(await existingEmailUser);
+  const existingEmailUser = await existingEmailUserPromise;
+  const existingEmailTempUser = await existingEmailTempUserPromise;
+  const isExistingEmail = !!existingEmailUser || !!existingEmailTempUser;
 
   if (!isExistingEmail) {
     const tempUser = await tempUsersService.createTempUser(
       email,
       hashedPassword,
     );
-    const verificationToken =
-      await tempUsersService.getTempUserVerificationToken(tempUser);
+    const verificationToken = authService.generateEmailVerificationToken();
+    tempUsersService.addEmailVerificationToken(
+      tempUser,
+      verificationToken,
+      email,
+    );
     const clientVerificationUrl =
       clientService.getEmailVerificationUrl(verificationToken);
-
+    // not awaited to improve performance in a non-critical operation
+    tempUsersService.saveUser(tempUser);
+    await mailService.sendVerifyEmailNewAccount(email, clientVerificationUrl);
+  } else if (!!existingEmailTempUser) {
+    const verificationToken = authService.generateEmailVerificationToken();
+    tempUsersService.addEmailVerificationToken(
+      existingEmailTempUser,
+      verificationToken,
+      email,
+    );
+    const clientVerificationUrl =
+      clientService.getEmailVerificationUrl(verificationToken);
+    // make sure TempUser is active for at least as long as the newly
+    // generated verification email is active
+    tempUsersService.refreshUserExpDate(
+      existingEmailTempUser,
+      new Date(Date.now() + VERIFICATION_MAIL_MAX_AGE),
+    );
+    await tempUsersService.saveUser(existingEmailTempUser);
     await mailService.sendVerifyEmailNewAccount(email, clientVerificationUrl);
   } else {
     const userTrackingInfo = await trackingService.getUserTrackingInfo(req);
+
     const resetPasswordUrl = clientService.getClientUrl(
       CLIENT_RESET_PASSWORD_PATH,
     );
