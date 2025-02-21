@@ -29,6 +29,10 @@ import {
   SocketWithAuth,
 } from '@customTypes/socket.types.js';
 import { initializeContext } from '@middleware/context.middleware.js';
+import {
+  initializeSocketRequest,
+  onHandshake,
+} from '@middleware/socket.middleware.js';
 import { initializeRefreshLockCache } from '@services/auth.service.js';
 import compression from 'compression';
 
