@@ -68,7 +68,10 @@ const io = new Server<
   },
   transports: ['polling', 'websocket'],
 });
-await connectToDb();
+if (process.env.NODE_ENV !== 'test') {
+  await connectToDb();
+}
+
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
