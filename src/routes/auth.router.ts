@@ -28,6 +28,14 @@ router.post(
 );
 router.post('/login', logInUser);
 router.get('/logout', logOutUser);
-router.get('/verify-email', verifyEmail);
+router.get(
+  '/verify-email',
+  validate({
+    query: {
+      token: ExtendedYup.string().required('Missing verification token'),
+    },
+  }),
+  verifyEmail,
+);
 
 export default router;
