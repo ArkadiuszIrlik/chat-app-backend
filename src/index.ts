@@ -10,6 +10,9 @@ import {
   verifyAuth,
   addRequestingUserToContext,
 } from '@middleware/auth.middleware.js';
+import authRouter from '@routes/auth.router.js';
+import serverRouter from '@routes/servers.router.js';
+import userRouter from '@routes/users.router.js';
 import chatRouter from '@routes/chat.router.js';
 import imagesRouter from '@routes/images.router.js';
 import connectToDb from '@config/db.config.js';
@@ -89,6 +92,10 @@ app.use(
 app.get('/', (_req, res) => {
   res.send('Hello world!');
 });
+app.use('/auth', authRouter);
+app.use('/servers', verifyAuth, serverRouter);
+app.use('/users', verifyAuth, userRouter);
+app.use('/chat', verifyAuth, chatRouter);
 app.use('/images', verifyAuth, imagesRouter);
 app.use(errorHandler({}));
 io.engine.use(initializeContext);
