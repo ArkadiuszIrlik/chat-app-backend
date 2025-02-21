@@ -17,6 +17,7 @@ import chatRouter from '@routes/chat.router.js';
 import imagesRouter from '@routes/images.router.js';
 import connectToDb from '@config/db.config.js';
 import cors from 'cors';
+import { handleSocket } from '@controllers/socket.controller.js';
 import errorHandler from 'error-handler-json';
 import fileUpload from 'express-fileupload';
 import path from 'path';
@@ -120,6 +121,10 @@ io.engine.use(initializeSocketRequest);
 io.engine.use(cookieParser());
 io.engine.use(onHandshake(verifyAuth));
 io.engine.use(onHandshake(addRequestingUserToContext));
+
+io.on('connection', (socket) => {
+  handleSocket(socket as SocketWithAuth, io);
+});
 
 if (process.env.NODE_ENV !== 'test') {
   server.listen(PORT, () => console.log(`Running on ${PORT} ⚡`));
