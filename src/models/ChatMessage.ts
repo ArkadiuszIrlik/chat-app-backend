@@ -1,6 +1,6 @@
-import mongoose, { Date, Schema, Types } from 'mongoose';
+import mongoose, { Schema, Types } from 'mongoose';
 
-export interface IChatMessage extends mongoose.Document {
+export interface IChatMessage {
   postedAt: Date;
   authorId: Types.ObjectId;
   text: string;
@@ -14,5 +14,4 @@ const ChatMessageSchema = new mongoose.Schema<IChatMessage>({
   chatId: Schema.Types.ObjectId,
 });
 
-export default mongoose.models.ChatMessage ||
-  mongoose.model<IChatMessage>('ChatMessage', ChatMessageSchema);
+export default mongoose.model<IChatMessage>('ChatMessage', ChatMessageSchema);
