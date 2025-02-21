@@ -1,4 +1,5 @@
 const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
+const AUTH_JWT_MAX_AGE = 10 * 60 * 1000;
 const REFRESH_TOKEN_LOCK_TTL = 20; // seconds
 const TEMP_USER_MAX_AGE = 24 * 60 * 60 * 1000;
 const VERIFICATION_MAIL_MAX_AGE = 24 * 60 * 60 * 1000; //ms
