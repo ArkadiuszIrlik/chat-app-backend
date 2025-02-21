@@ -25,6 +25,7 @@ import {
   SocketWithAuth,
 } from '@customTypes/socket.types.js';
 import { initializeContext } from '@middleware/context.middleware.js';
+import compression from 'compression';
 let key: Buffer, cert: Buffer;
 switch (true) {
   case process.env.NODE_ENV === 'development':
@@ -71,6 +72,7 @@ app.use(
   }),
 );
 app.use(cookieParser());
+app.use(compression({ level: 1 }));
 app.use(
   cors({
     origin: process.env.FRONTEND_ADDRESS,
