@@ -20,6 +20,7 @@ import cors from 'cors';
 import errorHandler from 'error-handler-json';
 import fileUpload from 'express-fileupload';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import {
   ClientToServerSocketEvents,
   InterServerSocketEvents,
@@ -29,6 +30,13 @@ import {
 } from '@customTypes/socket.types.js';
 import { initializeContext } from '@middleware/context.middleware.js';
 import compression from 'compression';
+
+// alternative to __dirname that works in both ESM (app) and CJS (jest)
+const unifiedDirname =
+  typeof __dirname !== 'undefined'
+    ? __dirname
+    : path.dirname(fileURLToPath(import.meta.url));
+
 let key: Buffer, cert: Buffer;
 switch (true) {
   case process.env.NODE_ENV === 'development':
@@ -67,7 +75,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   fileUpload({
     createParentPath: true,
-    tempFileDir: './tmp/',
+    tempFileDir: path.join(unifiedDirname, '..', 'tmp'),
     useTempFiles: true,
     limits: {
       fileSize: 2 * 1024 * 1024,
@@ -86,7 +94,7 @@ app.use(initializeContext);
 app.use(
   '/static',
   helmet({ crossOriginResourcePolicy: { policy: 'same-site' } }),
-  express.static(path.join(__dirname, '..', 'assets')),
+  express.static(path.join(unifiedDirname, '..', 'assets')),
 );
 
 app.get('/', (_req, res) => {
