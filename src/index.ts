@@ -101,6 +101,10 @@ app.use(
   }),
 );
 app.use(initializeContext);
+app.use((req, _res, next) => {
+  req.socketIo = io;
+  return next();
+});
 app.use(
   '/static',
   helmet({ crossOriginResourcePolicy: { policy: 'same-site' } }),
