@@ -109,4 +109,6 @@ io.engine.use(onHandshake(addRequestingUserToContext));
   });
 });
 
-server.listen(PORT, () => console.log(`Running on ${PORT} ⚡`));
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => console.log(`Running on ${PORT} ⚡`));
+}
