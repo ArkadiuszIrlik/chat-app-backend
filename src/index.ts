@@ -120,6 +120,7 @@ app.use('/users', verifyAuth, userRouter);
 app.use('/chat', verifyAuth, chatRouter);
 app.use('/images', verifyAuth, imagesRouter);
 app.use(errorHandler({}));
+
 io.engine.use(initializeContext);
 io.engine.use(initializeSocketRequest);
 io.engine.use(cookieParser());
