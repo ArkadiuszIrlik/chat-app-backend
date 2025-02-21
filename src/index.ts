@@ -104,11 +104,6 @@ io.engine.use(cookieParser());
 io.engine.use(onHandshake(verifyAuth));
 io.engine.use(onHandshake(addRequestingUserToContext));
 
-  socket.on('disconnect', (reason) => {
-    console.log(`disconnected due to ${reason}`);
-  });
-});
-
 if (process.env.NODE_ENV !== 'test') {
   server.listen(PORT, () => console.log(`Running on ${PORT} ⚡`));
 }
