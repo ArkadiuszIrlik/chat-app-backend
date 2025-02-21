@@ -29,6 +29,7 @@ import {
   SocketWithAuth,
 } from '@customTypes/socket.types.js';
 import { initializeContext } from '@middleware/context.middleware.js';
+import { initializeRefreshLockCache } from '@services/auth.service.js';
 import compression from 'compression';
 
 // alternative to __dirname that works in both ESM (app) and CJS (jest)
@@ -72,6 +73,7 @@ if (process.env.NODE_ENV !== 'test') {
   await connectToDb();
 }
 
+initializeRefreshLockCache();
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
