@@ -7,8 +7,8 @@ import { SocketChatMessage } from '@customTypes/socket.types.js';
 interface PopulatedAuthor {
   author: {
     _id: Types.ObjectId;
-    username: IUser['username'];
-    profileImg: IUser['profileImg'];
+    username: Required<IUser['username']>;
+    profileImg: Required<IUser['profileImg']>;
   };
 }
 
