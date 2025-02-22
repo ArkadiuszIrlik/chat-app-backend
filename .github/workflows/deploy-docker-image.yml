@@ -25,4 +25,4 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/ArkadiuszIrlik/chat-app-backend:latest
+            ghcr.io/arkadiuszirlik/chat-app-backend:latest
