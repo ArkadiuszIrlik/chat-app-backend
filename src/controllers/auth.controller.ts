@@ -95,10 +95,11 @@ export async function logInUser(req: Request, res: Response) {
 
   const userId = usersService.getUserId(user);
   const userEmail = await usersService.getUserEmail(user);
-  const authToken = await authService.signAuthJwt(userId, userEmail);
+  const deviceId = usersService.generateDeviceId();
+  const authToken = await authService.signAuthJwt(userId, userEmail, deviceId);
   authService.setAuthCookie(res, authToken);
 
-  const refreshTokenObject = authService.generateRefreshTokenObject();
+  const refreshTokenObject = authService.generateRefreshTokenObject(deviceId);
   await usersService.addRefreshToken(user, refreshTokenObject);
   const refreshToken =
     authService.getTokenFromRefreshTokenObject(refreshTokenObject);
