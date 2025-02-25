@@ -238,10 +238,11 @@ function checkRefreshTokenHasLock(refreshToken: string) {
 async function renewRefreshToken(
   currentToken: string,
   user: HydratedDocument<IUser>,
+  deviceId: string,
   { saveDocument = false }: { saveDocument?: boolean } = {},
 ) {
   usersService.removeRefreshToken(user, currentToken);
-  const nextTokenObject = generateRefreshTokenObject();
+  const nextTokenObject = generateRefreshTokenObject(deviceId);
   await usersService.addRefreshToken(user, nextTokenObject, {
     saveDocument,
   });
