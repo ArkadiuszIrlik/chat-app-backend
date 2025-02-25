@@ -41,6 +41,7 @@ async function _getRequestingUserId(req: Request) {
         req.decodedAuth = {
           email: decodedAuth.sub,
           userId: decodedAuth.userId,
+          deviceId: decodedAuth.deviceId,
         };
         userId = decodedAuth.userId;
       }

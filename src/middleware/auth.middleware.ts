@@ -50,6 +50,7 @@ async function verifyAuth(req: Request, res: Response, next: NextFunction) {
     req.decodedAuth = {
       userId: decodedAuthToken.userId,
       email: decodedAuthToken.sub,
+      deviceId: decodedAuthToken.deviceId,
     };
     return next();
   }
@@ -71,6 +72,7 @@ async function verifyAuth(req: Request, res: Response, next: NextFunction) {
     req.decodedAuth = {
       userId: userId.toString(),
       email: userEmail,
+      deviceId: decodedAuthToken.deviceId,
     };
     return next();
   }
@@ -88,6 +90,7 @@ async function verifyAuth(req: Request, res: Response, next: NextFunction) {
   const nextTokenObject = await authService.renewRefreshToken(
     refreshToken,
     user,
+    decodedAuthToken.deviceId,
   );
   const nextRefreshToken =
     authService.getTokenFromRefreshTokenObject(nextTokenObject);
@@ -95,7 +98,11 @@ async function verifyAuth(req: Request, res: Response, next: NextFunction) {
   // renew auth JWT
   const userId = usersService.getUserId(user);
   const userEmail = await usersService.getUserEmail(user);
-  const encodedJwt = await authService.signAuthJwt(userId, userEmail);
+  const encodedJwt = await authService.signAuthJwt(
+    userId,
+    userEmail,
+    decodedAuthToken.deviceId,
+  );
 
   await user.save();
 
@@ -105,6 +112,7 @@ async function verifyAuth(req: Request, res: Response, next: NextFunction) {
   req.decodedAuth = {
     userId: userId.toString(),
     email: userEmail,
+    deviceId: decodedAuthToken.deviceId,
   };
   return next();
 }
