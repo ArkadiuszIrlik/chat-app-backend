@@ -66,6 +66,8 @@ const ChannelCategorySchema = new mongoose.Schema<
   },
 });
 
+// @ts-ignore Expression produces a union type that is too complex to
+// represent.
 const ServerSchema = new mongoose.Schema<IServer, ServerModelType>(
   {
     name: { type: String, required: true },
