@@ -28,6 +28,9 @@ async function getUser(
 ) {
   const user = await User.findById(userId).exec();
   if (user && populateServersIn) {
+    // @ts-ignore mongoose union type issue, only way to fix is through
+    // duplicating code for each member of the union or extensive
+    // manipulation of mongoose's internal types
     await user.populate('serversIn');
   }
   return user;
@@ -263,6 +266,9 @@ async function getUserServersIn(
   const userToCheck = await _getUserFromParam(user);
 
   if (populateServersIn && !userToCheck.populated('serversIn')) {
+    // @ts-ignore mongoose union type issue, only way to fix is through
+    // duplicating code for each member of the union or extensive
+    // manipulation of mongoose's internal types
     const populatedUser = await userToCheck.populate<{
       serversIn: IServer[];
     }>('serversIn');

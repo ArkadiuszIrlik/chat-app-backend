@@ -126,6 +126,8 @@ export async function deleteMessage(req: Request, res: Response) {
   await chatService.deleteMessage(messageId);
   socketService.emitChatMessageDeleted(
     req.socketIo,
+    // @ts-expect-error TypeScript doesn't preserve types for populated
+    // fields after calling toJSON
     message.toJSON({ getters: true }),
     chatId,
     channelSocketId,

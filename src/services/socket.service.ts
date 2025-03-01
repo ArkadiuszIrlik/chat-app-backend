@@ -4,7 +4,6 @@ import {
   SocketServer,
 } from '@customTypes/socket.types.js';
 import { IServer } from '@models/Server.js';
-import { IUser } from '@models/User.js';
 import { HydratedDocument, Types } from 'mongoose';
 
 function emitUserJoinedServer(
