@@ -25,14 +25,6 @@ function createTempUser(email: string, hashedPassword: string) {
   });
 }
 
-async function getTempUserVerificationToken(
-  tempUser: string | HydratedDocument<ITempUser>,
-) {
-  const userToCheck = await _getTempUserFromParam(tempUser);
-
-  return userToCheck.verificationToken;
-}
-
 function getTempUserFromToken(verificationToken: string) {
   return TempUser.findOne({ verificationToken }).exec();
 }
@@ -133,7 +125,6 @@ function saveUser(user: HydratedDocument<ITempUser>) {
 
 export {
   createTempUser,
-  getTempUserVerificationToken,
   getTempUserFromToken,
   getUserByEmail,
   getUserByEmailToken,
