@@ -11,7 +11,7 @@ export interface IChannel {
   name: string;
   type: 'text' | 'voice';
   socketId: Types.ObjectId;
-  demoChannelId: DemoChannelIds;
+  demoChannelId?: DemoChannelIds;
 }
 
 export interface IChannelCategory {
