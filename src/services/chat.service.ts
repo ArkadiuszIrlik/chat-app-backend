@@ -12,6 +12,7 @@ interface PopulatedAuthor {
   };
 }
 
+// @ts-ignore mongoose type issues on populated fields
 function getMessageById(
   messageId: string,
   { populateAuthor }: { populateAuthor: true },
