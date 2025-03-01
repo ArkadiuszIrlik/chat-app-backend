@@ -5,7 +5,7 @@ import {
 } from '@helpers/date.helpers.js';
 import { getChannelsFromCategories } from '@helpers/servers.helpers.js';
 import ChatMessage from '@models/ChatMessage.js';
-import Server, { IServer } from '@models/Server.js';
+import Server, { DemoChannelIds, IServer } from '@models/Server.js';
 import User, { IUser, UserAccountStatus } from '@models/User.js';
 import { hashPassword } from '@services/auth.service.js';
 import { HydratedDocument, Types } from 'mongoose';
@@ -14,11 +14,6 @@ enum MessageAuthorIds {
   John = '677a7ad6daef42ed69afdea8',
   Billy = '677a7ad6daef42ed69afdea9',
   Sue = '677d63d09f5268156bd6f254',
-}
-
-enum DemoChannelIds {
-  General = '677fe20cafdc934e773604c8',
-  Pics = '677fe20cafdc934e773604c9',
 }
 
 /** Calculates date equally offset from provided currentDate as messageDate

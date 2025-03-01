@@ -1,11 +1,17 @@
 import { getAssetUrl } from '@helpers/fetch.helpers.js';
 import mongoose, { Schema, Types, Model } from 'mongoose';
 
+export enum DemoChannelIds {
+  General = '677fe20cafdc934e773604c8',
+  Pics = '677fe20cafdc934e773604c9',
+}
+
 export interface IChannel {
   _id: Types.ObjectId;
   name: string;
   type: 'text' | 'voice';
   socketId: Types.ObjectId;
+  demoChannelId: DemoChannelIds;
 }
 
 export interface IChannelCategory {
@@ -52,6 +58,7 @@ const ChannelSchema = new mongoose.Schema<IChannel>({
     required: true,
     default: () => new Types.ObjectId(),
   },
+  demoChannelId: DemoChannelIds,
 });
 
 const ChannelCategorySchema = new mongoose.Schema<
