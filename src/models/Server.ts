@@ -58,7 +58,10 @@ const ChannelSchema = new mongoose.Schema<IChannel>({
     required: true,
     default: () => new Types.ObjectId(),
   },
-  demoChannelId: DemoChannelIds,
+  demoChannelId: {
+    type: String,
+    enum: DemoChannelIds,
+  },
 });
 
 const ChannelCategorySchema = new mongoose.Schema<
