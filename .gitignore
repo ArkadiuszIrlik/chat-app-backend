@@ -1,10 +1,7 @@
 node_modules/
 dist/
-.env
-.env.production
-.env.development
-.env.dev-remote
-.env.test
+env/*
+!env/.env.example
 
 localhost-key.pem
 localhost.pem
