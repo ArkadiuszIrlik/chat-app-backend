@@ -5,4 +5,4 @@ RUN npm install
 COPY . .
 RUN npm run build
 RUN rm -rf ./src
-CMD ["node", "test.js"]
+CMD ["npm", "run", "start"]
