@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer/index.js';
 
-const SENDER_ADDRESS: Mail.Options['from'] = `"Beluga" beluga@webdevguy.site`;
+const SENDER_ADDRESS: Mail.Options['from'] = process.env.MAIL_SENDER_ADDRESS;
 
 const mailTransporter = nodemailer.createTransport({
   port: 587,
