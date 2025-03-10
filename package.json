@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig-build.json && tsc-alias -p tsconfig-build.json",
-    "dev": "NODE_ENV=development tsx watch ./src/index.ts",
-    "dev-remote": "NODE_ENV=dev-remote tsx watch ./src/index.ts",
-    "start": "NODE_ENV=production node dist/index.js",
-    "test": "NODE_ENV=test jest"
+    "dev": "NODE_ENV=development infisical run --env=dev -- tsx watch ./src/index.ts",
+    "dev-remote": "NODE_ENV=dev-remote infisical run --env=dev-remote -- tsx watch ./src/index.ts",
+    "start": "NODE_ENV=production infisical run --env=prod -- node dist/index.js",
+    "test": "NODE_ENV=test infisical run --env=test -- jest"
   },
   "dependencies": {
     "@types/compression": "^1.7.5",
