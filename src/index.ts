@@ -4,7 +4,6 @@ import express from 'express';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'node:https';
-import { readFile } from 'fs/promises';
 import { Server } from 'socket.io';
 import {
   verifyAuth,
@@ -45,22 +44,8 @@ const unifiedDirname =
     ? __dirname
     : path.dirname(fileURLToPath(import.meta.url));
 
-let key: Buffer, cert: Buffer;
-switch (true) {
-  case process.env.NODE_ENV === 'development':
-    key = await readFile('./localhost-key.pem');
-    cert = await readFile('./localhost.pem');
-    break;
-  case process.env.NODE_ENV === 'dev-remote':
-    key = await readFile('./key.pem');
-    cert = await readFile('./cert.pem');
-    break;
-  default:
-    key = await readFile('./localhost-key.pem');
-    cert = await readFile('./localhost.pem');
-    break;
-}
-
+const key = process.env.TLS_KEY;
+const cert = process.env.TLS_CERT;
 const PORT = process.env.PORT || 3000;
 const app = express();
 const server = createServer({ key, cert }, app);
