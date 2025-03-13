@@ -314,6 +314,10 @@ async function handleSocket(socket: SocketWithAuth, io: SocketServer) {
     callback({ ok: true, data: null });
   });
 
+  socket.on(SocketEvents.StartDemo, () => {
+    runDemo(socket, io);
+  });
+
   socket.on('disconnecting', () => {
     if (socket.data.onlineStatus !== UserOnlineStatus.Offline) {
       io.to([...socket.rooms.keys()]).emit(
