@@ -10,6 +10,7 @@ import { HydratedDocument } from 'mongoose';
 import * as usersService from '@services/users.service.js';
 import * as serversService from '@services/servers.service.js';
 import * as chatService from '@services/chat.service.js';
+import * as demoService from '@services/demo.service.js';
 
 async function _refetchUser(socket: SocketWithAuth) {
   const userId = usersService.getUserId(socket.data.user);
@@ -48,6 +49,74 @@ async function _refreshUser(
   socket.data.onlineStatus = nextOnlineStatus;
   socket.data.channelSocketMap = nextChannelSocketMap;
 }
+
+interface DemoMessageData {
+  authorId: demoService.MessageAuthorIds;
+  text: string;
+  demoChannelId: string;
+}
+const demoMessageSteps: { message: DemoMessageData; delayBefore: number }[] = [
+  {
+    message: {
+      authorId: demoService.MessageAuthorIds.Billy,
+      text: `Hey there. Cool of you to pop into our server.
+It's good to have you around.`,
+      demoChannelId: demoService.DemoChannelIds.General,
+    },
+    delayBefore: 5 * 1000,
+  },
+  {
+    message: {
+      authorId: demoService.MessageAuthorIds.Billy,
+      text: `<p>You can get pretty creative with your messages. Wrap text in <code>~~tilde~~</code>
+to strike it through like <s>this</s>. Start a line with a different number of <code>#</code>
+to adjust heading level like</p>
+<h3>so.</h3>
+<p>Press <code>shift + enter</code> to move to a new line or
+<code>ctrl + enter</code> (<code>cmd + enter</code> on MacOS) to start a new paragraph.
+You can also enter lines of code with <code>backticks</code>.
+And if you ever feel like sharing some poetry, why not put it inside a nice blockquote with
+<code>></code>.</p>`,
+      demoChannelId: demoService.DemoChannelIds.General,
+    },
+    delayBefore: 5 * 1000,
+  },
+  {
+    message: {
+      authorId: demoService.MessageAuthorIds.Sue,
+      text: `Click here to see something adorable 🥰 <a href="https://th.bing.com/th/id/OIP.X3mfeI7lW-x1NvHx8AZwAAHaHa" target="_blank">https://th.bing.com/th/id/OIP.X3mfeI7lW-x1NvHx8AZwAAHaHa</a>`,
+      demoChannelId: demoService.DemoChannelIds.Pics,
+    },
+    delayBefore: 20 * 1000,
+  },
+  {
+    message: {
+      authorId: demoService.MessageAuthorIds.Billy,
+      text: `<p>I gave you extra permissions so you can invite your friends
+to join us. You can invite from the server menu in the top left of the app.</p>`,
+      demoChannelId: demoService.DemoChannelIds.General,
+    },
+    delayBefore: 10 * 1000,
+  },
+  {
+    message: {
+      authorId: demoService.MessageAuthorIds.Billy,
+      text: `<p>If you don't know anyone around here yet, you could always open
+      the app in a separate incognito window.</p>`,
+      demoChannelId: demoService.DemoChannelIds.General,
+    },
+    delayBefore: 6 * 1000,
+  },
+  {
+    message: {
+      authorId: demoService.MessageAuthorIds.Billy,
+      text: `<p>Alright, that's all from me. Thank you for stopping by and have a
+nice day 😄</p>`,
+      demoChannelId: demoService.DemoChannelIds.General,
+    },
+    delayBefore: 6 * 1000,
+  },
+];
 
 async function handleSocket(socket: SocketWithAuth, io: SocketServer) {
   if (!socket.request.context.requestingUser) {
