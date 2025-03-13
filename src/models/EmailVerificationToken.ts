@@ -10,7 +10,7 @@ interface IEmailVerification {
 const EmailVerificationSchema = new mongoose.Schema<IEmailVerification>({
   token: {
     type: String,
-    index: { unique: true },
+    index: { unique: true, sparse: true },
     required: true,
   },
   email: { type: String, required: true },
