@@ -274,6 +274,14 @@ async function handleSocket(socket: SocketWithAuth, io: SocketServer) {
       });
       return;
     });
+
+    // force fake demo users to always appear as online
+    [
+      demoService.MessageAuthorIds.Billy,
+      demoService.MessageAuthorIds.Sue,
+    ].forEach((id) => {
+      userList.push({ _id: id, onlineStatus: UserOnlineStatus.Online });
+    });
     callback(userList);
   });
 
