@@ -1,4 +1,4 @@
-import { IUser } from '@models/User.js';
+import User, { IUser } from '@models/User.js';
 import sanitize from 'sanitize-html';
 import {
   SocketEvents,
@@ -6,7 +6,7 @@ import {
   SocketWithAuth,
 } from '@customTypes/socket.types.js';
 import { UserOnlineStatus } from '@src/typesModule.js';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, MongooseError } from 'mongoose';
 import * as usersService from '@services/users.service.js';
 import * as serversService from '@services/servers.service.js';
 import * as chatService from '@services/chat.service.js';
@@ -325,6 +325,23 @@ async function handleSocket(socket: SocketWithAuth, io: SocketServer) {
         usersService.getUserId(socket.data.user).toString(),
         UserOnlineStatus.Offline,
       );
+    }
+  });
+
+  // persist demoStepOffset on User doc
+  socket.on('disconnect', async () => {
+    if (socket.data.user.isModified()) {
+      try {
+        socket.data.user.save();
+      } catch (e) {
+        if (e instanceof MongooseError && e.name === 'VersionError') {
+          const refetchedUser = await User.findById(socket.data.user);
+          if (refetchedUser) {
+            refetchedUser.demoStepOffset = socket.data.user.demoStepOffset;
+            refetchedUser.save();
+          }
+        }
+      }
     }
   });
 }
