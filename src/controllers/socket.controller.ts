@@ -11,6 +11,7 @@ import * as usersService from '@services/users.service.js';
 import * as serversService from '@services/servers.service.js';
 import * as chatService from '@services/chat.service.js';
 import * as demoService from '@services/demo.service.js';
+import { getChannelsFromCategories } from '@helpers/servers.helpers.js';
 
 async function _refetchUser(socket: SocketWithAuth) {
   const userId = usersService.getUserId(socket.data.user);
@@ -117,6 +118,88 @@ nice day 😄</p>`,
     delayBefore: 6 * 1000,
   },
 ];
+
+async function runDemo(socket: SocketWithAuth, io: SocketServer) {
+  const isUsingDemo = !!socket.data.user.demoServer;
+  if (!isUsingDemo) {
+    return;
+  }
+  if (
+    socket.data.user.demoServer === undefined ||
+    socket.data.user.demoStepOffset === undefined
+  ) {
+    return;
+  }
+
+  let currentStepOffset = socket.data.user.demoStepOffset;
+  if (currentStepOffset >= demoMessageSteps.length) {
+    return;
+  }
+  const demoServer = await serversService.getServer(
+    socket.data.user.demoServer.toString(),
+  );
+  if (!demoServer) {
+    return;
+  }
+  const demoChannels = getChannelsFromCategories(demoServer.channelCategories);
+  const demoUsers = await demoService.getDemoUsers();
+
+  for (let i = currentStepOffset; i < demoMessageSteps.length; i++) {
+    const currentStep = demoMessageSteps[i];
+    await new Promise((resolve) =>
+      setTimeout(() => resolve(true), currentStep.delayBefore),
+    );
+    // helps concurrency issues if client calls start demo twice
+    if (i !== socket.data.user.demoStepOffset) {
+      return;
+    }
+
+    const demoMessageData = currentStep.message;
+    const author = demoUsers.find((user) =>
+      user._id.equals(demoMessageData.authorId),
+    );
+
+    if (!author) {
+      socket.data.user.save();
+      return;
+    }
+
+    const demoChannel = demoChannels.find(
+      (channel) => channel.demoChannelId === demoMessageData.demoChannelId,
+    );
+    if (!demoChannel) {
+      socket.data.user.save();
+      return;
+    }
+
+    const messageDoc = await chatService.createServerMessage(
+      {
+        author: usersService.getUserId(author),
+        text: demoMessageData.text,
+        channelId: demoChannel._id,
+        serverId: demoServer._id,
+        clientId: crypto.randomUUID(),
+      },
+      { saveDoc: false },
+    );
+    const socketMessage = chatService.getSocketSafeServerMessage(
+      messageDoc,
+      author,
+    );
+    if (!socketMessage) {
+      return;
+    }
+
+    // io necessary, since socket.to() excludes the socket itself
+    io.to(demoChannel.socketId.toString()).emit(
+      SocketEvents.ChatMessage,
+      socketMessage,
+    );
+    messageDoc.save();
+
+    socket.data.user.demoStepOffset = i + 1;
+  }
+}
 
 async function handleSocket(socket: SocketWithAuth, io: SocketServer) {
   if (!socket.request.context.requestingUser) {
