@@ -7,12 +7,12 @@ mailTransporter.use(
   hbs({
     viewEngine: {
       extname: '.hbs',
-      partialsDir: './src/views/mail',
-      layoutsDir: './src/views/mail',
+      partialsDir: './mail-templates',
+      layoutsDir: './mail-templates',
       defaultLayout: 'index',
     },
     extName: '.hbs',
-    viewPath: './src/views/mail',
+    viewPath: './mail-templates',
   }),
 );
 

@@ -38,7 +38,6 @@
       "@models/*": ["./src/models/*"],
       "@routes/*": ["./src/routes/*"],
       "@helpers/*": ["./src/helpers/*"],
-      "@views/*": ["./src/views/*"],
       "@customTypes/*": ["./src/types/*"],
       "@src/*": ["./src/*"],
       "@tests/*": ["./tests/*"]
